@@ -7,7 +7,7 @@
 # macro with the name of your main .tex file -- the one that you
 # invoke LaTeX on.
 
-MAIN_TEX	= sve-ompi.tex
+MAIN_TEX	= avx-ompi.tex
 
 # OTHER_SRC_FILES: Put in the names of all the other .tex files that
 # this document depends on in the OTHER_SRC_FILES macro.  This is
@@ -20,7 +20,7 @@ OTHER_SRC_FILES	=
 # BibTeX sources.  The bibliography will automatically be re-generated
 # if these files change.
 
-BIBTEX_SOURCES = ref.bib
+BIBTEX_SOURCES = sample-base.bib
 
 # xfig figures.  Will be converted to .eps and .pdf as necessary.
 
