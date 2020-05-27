@@ -11,6 +11,9 @@
 \usepackage[compact]{titlesec}
 \usepackage{balance}
 
+%\usepackage{authblk}
+\usepackage{comment}
+
 \usepackage{xspace}
 \usepackage{filecontents}
 \usepackage[switch]{lineno}
@@ -19,14 +22,14 @@
 
 \newcommand{\mpifunc}[1]{\lstinline"MPI_#1"\xspace}
 \newcommand{\prrte}[0]{\textsc{PRRTE}\xspace}
-\newcommand{\pmix}[0]{\textsc{PMIx}\xspace}
-\newcommand{\orte}[0]{\textsc{Open~RTE}\xspace}
-\newcommand{\ompi}[0]{\textsc{Open~MPI}\xspace}
+\newcommand{\pmix}[0]{PMIx\xspace}
+\newcommand{\orte}[0]{Open~RTE\xspace}
+\newcommand{\ompi}[0]{Open~MPI\xspace}
 \newcommand{\mpi}[0]{\textsc{MPI}\xspace}
 \newcommand{\arm}[0]{Arm\xspace}
-\newcommand{\oshmem}[0]{\textsc{OpenSHMEM}\xspace}
+\newcommand{\oshmem}[0]{OpenSHMEM\xspace}
 \newcommand{\sve}[0]{\textsc{SVE}\xspace}
-\newcommand{\armie}[0]{\textsc{ArmIE}\xspace}
+\newcommand{\armie}[0]{ArmIE\xspace}
 \newcommand{\ddt}[0]{\textsc{DDT}\xspace}
 \newcommand{\acle}[0]{\textsc{ACLE}\xspace}
 
@@ -44,10 +47,19 @@
 
 \begin{document}
 
-\title{Using Advanced Vector Extensions AVX-512 for MPI Reduction}
+\title{Using Advanced Vector Extensions AVX-512 for MPI Reductions}
+
+\begin{comment}
+\author[1]{Dong Zhong}
+\author[1]{Qinglei Cao}
+\author[1]{George Bosilca}
+\author[1]{Jack J. Dongarra}
+
+\affil[1]{The University of Tennessee, Knoxville, TN, USA}
+\end{comment}
 
 \author{Dong Zhong}
-\email{dzhong@vols.utk.edu}
+%\email{dzhong@vols.utk.edu}
 %\orcid{0000-0002-7651-2059}
 \affiliation{%
   \institution{The University of Tennessee}
@@ -59,7 +71,7 @@
 }
 
 \author{Qinglei Cao}
-\email{qcao3@vols.utk.edu}
+%\email{qcao3@vols.utk.edu}
 \affiliation{%
   \institution{The University of Tennessee}
   \streetaddress{1122 Volunteer Blvd}
@@ -70,7 +82,7 @@
 }
 
 \author{George Bosilca}
-\email{bosilca@icl.utk.edu}
+%\email{bosilca@icl.utk.edu}
 \orcid{0000-0003-2411-8495}
 %
 \affiliation{%
@@ -83,7 +95,7 @@
 }
 
 \author{Jack Dongarra}
-\email{dongarra@icl.utk.edu}
+%\email{dongarra@icl.utk.edu}
 %
 \affiliation{%
   \institution{The University of Tennessee}
@@ -95,31 +107,41 @@
 }
 
 \begin{abstract}
-  As the scale of high-performance computing (HPC) systems continues to grow, researchers are devoted themselves to implore increasing levels of parallelism to achieve optimal performance.
+  As the scale of high-performance computing (HPC) systems continues to grow, researchers are devoted themselves to explore increasing levels of parallelism to achieve optimal performance.
   %
-  The modern CPU's design, which is comprised of hierarchical memory and SIMD/vectorization capability, governs the potential for algorithms to be more and more efficient. Recently, with the wide vector extension support motivates vectorization becomes much more important to exploit the potential peak performance of target architecture.
+  The modern CPU's design, including its features of hierarchical
+  memory and SIMD/vectorization capability, governs algorithms'
+  efficiency. The recent introduction of wide vector instruction
+  set extensions (AVX and SVE) motivated vectorization to become of
+  critical importance to increase efficiency and close the gap to peak
+  performance.
   %
-  Intel released processor architectures AVX-512 introduced 512-bit extensions to the 256-bit Advanced Vector Extensions instructions for x86 Instruction Set Architecture (ISA). It embraced new capabilities such as flexible memory access, vector mathematical functions, as well as a small set of further instructions for mathematical library support. These new features allow for better compliance with long vector load/store and reduction operations.
-  %
-  ARM's modern Armv8-A architecture also introduced Scalable Vector Extension (SVE) - an optional separate architectural extension with a new set of A64 instruction encodings, which enables even more significant parallelisms.
+  % Intel released processor architectures AVX-512 introduced 512-bit extensions to the 256-bit Advanced Vector Extensions instructions for x86 Instruction Set Architecture (ISA). It embraced new capabilities such as flexible memory access, vector mathematical functions, as well as a small set of further instructions for mathematical library support. These new features allow for better compliance with long vector load/store and reduction operations.
+  % %
+  % ARM's modern Armv8-A architecture also introduced Scalable Vector Extension (SVE) - an optional separate architectural extension with a new set of A64 instruction encodings, which enables even more significant parallelisms.
   %
 
-  In this paper, we propose new strategies by utilizing AVX2 and AVX-512 intrinsics
-  to provide vector-based reduction operation to improve the time-to-solution performance of MPI reduction.
-  With these optimizations, we achieve higher parallelism for computations on a single node,
-  which will benefit the overall cost of reduction collectives.
-  The resulting efforts have been implemented in the context of \ompi, providing
-  efficient and scalable capabilities of AVX-512 usage and extending the possible
-  implementations of AVX-512 to a more extensive range of programming and execution paradigms.
+  In this paper, we propose an implementation of predefined MPI
+  reduction operations utilizing AVX, AVX2 and AVX-512 intrinsics to
+  provide vector-based reduction operation and to improve the
+  time-to-solution of these predefined MPI reduction operations.  With
+  these optimizations, we achieve a higher efficiency for local
+  computations, which directly benefit the overall cost of collective
+  reductions.
+  % The resulting efforts have been implemented in the
+  % context of \ompi, providing efficient and scalable capabilities of
+  % AVX-512 usage and extending the possible implementations of AVX-512
+  % to a more extensive range of programming and execution paradigms.
 %
-  The evaluation of the resulting software stack under different scenarios demonstrates
-  that the solution is at the same time generic and efficient.
-  Experiments are conducted on an Intel Xeon Gold cluster, which shows
-  our AVX512 optimized reduction operations achieve 10X performance benefits than \ompi default
-  for MPI local reduction.
+  The evaluation of the resulting software stack under different
+  scenarios demonstrates that the solution is at the same time generic
+  and efficient.  Experiments are conducted on an Intel Xeon Gold
+  cluster, which shows our AVX512 optimized reduction operations
+  achieve 10X performance benefits than \ompi default for MPI local
+  reduction.
 %
-  Furthermore, we demonstrate the efficiency of our AVX512-enabled approach by
-  a distributed deep learning application Horovod showing 12\% speedup with 1536 processes.
+  % Furthermore, we demonstrate the efficiency of our AVX512-enabled approach by
+  % a distributed deep learning application Horovod showing 12\% speedup with 1536 processes.
 % todo add compare result vs ompi
 \end{abstract}
 
