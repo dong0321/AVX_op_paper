@@ -987,7 +987,11 @@ memcpy which indicates we maximize the memory bandwidth.
 \end{figure}
 
 \section{Deep Learning Application Evaluation}\label{sec:application}
-Over the past few years, advancements in deep learning have driven tremendous improvement in image processing, computer vision, speech recognition, robotics and control, natural language processing, and many others. One of the significant challenges of deep learning is to decrease the cost of the training process, which is very time-consuming. 
+Over the past few years, advancements in deep learning have driven
+tremendous improvement in image processing, computer vision, speech
+recognition, robotics and control, natural language processing, and
+many others. One of the significant challenges of deep learning is to
+decrease the extremely time-consuming cost of the training process. 
 %
 Designing a deep learning model
 requires design space exploration of a large number of hyper-parameters and processing big data.
@@ -1010,18 +1014,17 @@ In this section, we investigate and experiment on Horovod~\cite{sergeev2018horov
 open-source component of Michelangelo's deep learning toolkit makes it easier to start and 
 speed up distributed deep learning projects with TensorFlow.
 %
-Horovod utilizes \ompi to launch all copies of the TensorFlow program. \ompi will transparently set up the distributed infrastructure necessary for processes to communicate with each other. All the user needs to do is to
-modify their program to average gradients using an Allreduce operation. 
+Horovod utilizes \ompi to launch copies of the TensorFlow program. \ompi will transparently set up the distributed infrastructure necessary for processes to communicate with each other. All the user needs to do is to
+modify their program to average gradients using an MPI\_Allreduce operation. 
 %
 Conceptually Allreduce has every process to share its data with all other processes and applies a reduction operation. 
 This operation can be any reduction operation, such as sum, max or min. 
 In other words, it reduces the target arrays in all processes
 to a single array and returns the result array to all processes. 
 %
-Horovod uses a ring-allreduce approach, which is a bandwidth optimal~\cite{allreduce-optimal} algorithm. 
-Horovod also utilizes the network optimally if the tensors are large enough, but does not
-work as efficiently or quickly if they are insignificant.
-It introduces Tensor Fusion - an algorithm that fuses tensors together
+Horovod uses a ring-allreduce approach, which is a bandwidth optimal~\cite{allreduce-optimal} algorithm if the tensors are large enough, but does not
+work as efficiently for smaller tensors.
+Horovod can also use a Tensor Fusion - an algorithm that fuses tensors together
 before it calls ring-allreduce. The fusion method allocates a large fusion buffer and executes the
 allreduce operation on the fusion buffer.
 %
@@ -1052,7 +1055,8 @@ Figure~\ref{fig:horovod_tacc} shows the performance comparison of
 our AVX512 optimized reduction operation and the default reduction operation in \ompi for Horovod (with synthetic datasets and AlexNet model) to train an application called tf\_cnn\_benchmarks~\cite{cnn_Tensorflow}.
 Comparing to default element-wise reduction
 implementations, with the increasing number of processes,
-our design gains more and more improvements, which start from 5.45\% eventually to 12.38\% faster than default \ompi on 192 processes and 1536 processes respectively.
+our design shows increasing improvements, which start at 5.45\% and
+eventually rise to 12.38\% faster than default \ompi on 192 processes and 1536 processes respectively.
 We notice that the performance benefit increases with more processes/nodes. 
 It is because with more processes, the ratio of time cost by reduction operation increases 
 compared to the running time of the entire application. 
@@ -1060,30 +1064,42 @@ We can see that with more nodes, the benefit of our AVX512 optimized \ompi is mo
 
 %to do check verbs
 \section{Conclusion}\label{sec:conclusion}
-In this paper, we demonstrated the benefits of Intel AVX, AVX2 and AVX512 vector operations. We
-addressed the performance advantages of different features introduced by AVX
-with longer vector length compared. Furthermore,
-we extended our investigation and analysis to introduced
-an optimistic \mpi optimization.
+In this paper, we pragmatically demonstrated the benefits of Intel
+AVX, AVX2 and AVX512 vector operations in the context of MPI reduction
+operations. We assess the performance advantages of different features
+introduced by AVX and extended our investigation and analysis to a
+fully-fledged implementation of all predefined MPI reduction
+operations.
 %
-We introduced
-a new reduction operation module in \ompi using AVXs' intrinsics supporting
-different kinds of \mpi reduce operations for multiple \mpi types. We
-demonstrated the efficiency of our vector reduction operation by a benchmark
-calling \mpifunc{Local_reduce}. Experiments are conducted on an Intel Xeon Gold cluster,
-which shows with AVX512 enabled reduction operations we achieve 10X performance benefits.
-To further validate the performance improvements,
-experiments are conducted using Skylake processor, and we tested a deep learning
-application using distributed model Horovod, which calculate and update the gradient to adjust the weights using \ompi allreduce.
-Just by switching to our new reduction strategy, we achieve a speedup of 12.38\% with 1536 processes.
-Our analysis and implementation of \ompi optimization provide useful insights and
-guidelines on how wide vector operations, in this case, Intel AVX extensions, can be
-used in actual high-performance computing platforms and
-software to improve the efficiency of parallel runtimes and applications.
-Also with our AVX512 enabled \ompi it provides a better solution for reduction operation
-in distributed neural network
-training applications, the performance is limited by the time-consuming reduce calculation,
-because the number of reductions and the data amount are huge.
+We introduced this new reduction operation module in \ompi using AVXs'
+intrinsics supporting different kinds of \mpi reduce operations for
+multiple \mpi types. We demonstrated the efficiency of our vector
+reduction operation using a benchmark calling
+\mpifunc{Local_reduce}. Experiments are conducted on an Intel Xeon
+Gold cluster, which shows with AVX512 enabled reduction operations we
+achieve 10X performance benefits.
+%
+To further validate the performance improvements, experiments are
+conducted using Skylake processor using a deep learning application
+using distributed model Horovod, which calculate and update the
+gradient to adjust the weights using an MPI\_Allreduce.  Our new
+reduction strategy achieved a significant speedup across all ranges of
+processes, with an 12.38\% improvement with 1536 processes.  Our
+analysis and implementation of \ompi optimization provide useful
+insights and guidelines on how wide vector operations, in this case,
+Intel AVX extensions, can be used in actual high-performance computing
+platforms and software to improve the efficiency of parallel runtimes
+and applications.
+%
+% Our AVX512 enabled \ompi provides a better solution for reduction
+% operation in general, and in particular on the tested distributed
+% neural network training application, the performance is limited by the
+% time-consuming reduce calculation, because the number of reductions
+% and the data amount are huge.
+Our AVX512 enabled \ompi proves that taking advantage of hardware
+capabilities remains of critical interest to software development, and
+that even a small improvement in the MPI implementation can have
+quickly a significant impact on applications.
 
 \section*{Acknowledgement}
 %
