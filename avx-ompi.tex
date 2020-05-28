@@ -11,6 +11,7 @@
 \usepackage[compact]{titlesec}
 \usepackage{balance}
 
+\usepackage{enumitem}
 %\usepackage{authblk}
 \usepackage{comment}
 
@@ -528,31 +529,43 @@ In summary, the intrinsic function allows SIMD instructions to be manipulated fa
 accurately, and more effectively than writing lower-level code.
 We describe the primary AVX-512 intrinsic functions that we are interested in our kernel:
 
-\begin{enumerate}
-  \item \emph{\textbf{\textit{\_\_m512i\ \_mm512\_loadu\_si512\ (void const\* mem\_addr)}}} \\
-  Load 512-bits of integer data from memory into "dst.mem\_addr" does not need to be aligned on any particular boundary.
-  This function is converted into \\ Instruction: \emph{\textbf{\textit{vmovdqu32  zmm,  m512}}}.
-  \item \emph{\textbf{\textit{\_\_m512i\ \_mm512\_add\_epi32\ (\_\_m512i a,\ \_\_m512i b)}}}
-  Add packed 32-bit integers in "a" and "b", and store the results in destination, here we use 32-bits integer as an example.
-  This function is converted into \\ Instruction: \emph{\textbf{\textit{vpaddd  zmm,  zmm,  zmm}}}.
-  \item \emph{\textbf{\textit{\_\_m512i\ \_mm512\_storeu\_si512\ (void const\* mem\_addr, \_\_m512i a)}}} \\
-  Store 512-bits of integer data from "a" into "memory.mem\_addr" does not need to be aligned on any particular boundary.
-  This function is converted into \\ Instruction: \emph{\textbf{\textit{vmovdqu32  m512, zmm}}}.
+\begin{enumerate}[leftmargin=*]
+  %
+  \item \emph{\textbf{\textit{\_\_m512i\ \_mm512\_loadu\_si512\ (void const* mem\_addr)}}} \\
+  Load 512-bits of integer data from memory into a register. The mem\_addr does not need to be aligned on any particular boundary.
+  Generally, this instrinsic is converted into:\\
+  \emph{\textbf{\textit{vmovdqu32  zmm,  m512}}}.
+  %
+  \item \emph{\textbf{\textit{\_\_m512i\ \_mm512\_<op>\_epi32\ (\_\_m512i a,\ \_\_m512i b)}}}
+  Apply <op> between packed 32-bit integers in "a" and "b", and store the results in destination, here we use 32-bits integer as an example.
+  Generally, this instrinsic is converted into:\\
+  \emph{\textbf{\textit{vp<op>d  m512,  m512,  m512}}}.
+  %
+  \item \emph{\textbf{\textit{\_\_m512i\ \_mm512\_storeu\_si512\ (void const* mem\_addr,\\ \_\_m512i a)}}}
+  Store 512-bits of integer data from "a" into memory. mem\_addr does not need to be aligned on any particular boundary.
+  Generally, this instrinsic is converted into:\\
+  \emph{\textbf{\textit{vmovdqu32  m512, zmm}}}.
+  %
 \end{enumerate}
 
 \subsection{Reduction operation in \ompi}
-We implement our advanced reduction operation with AVX, AVX2, AVX-512 support
-in a set of components in \ompi which is based on a Modular Component
-Architecture~\cite{dong_prrte} that permits easily and quickly extending or
-substituting the core subsystem with new features and innovations.
-As shown below, we add our AVX-512 optimization work in a few components to OMPI
-architecture that implements all MPI reduction operations with vector reduction instructions as in Figure~\ref{fig:avx_mca}; also we integrate our new module to
-automatically detect the processor information and check related flags, select supported AVX reduction operations or fallback to the default basic module if it is not supported by the
-hardware, as shown in Figure~\ref{fig:512flow}. 
+We implement our advanced reduction operation with AVX, AVX2, AVX-512
+support in a component in \ompi, based on a Modular Component
+Architecture~\cite{dong_prrte} that facilitates extending or
+substituting \ompi core subsystem with new features and innovations.
+We add our AVX-512 optimization in a specialized components that
+implements all predefined MPI reduction operations with vector
+reduction instructions as in Figure~\ref{fig:avx_mca}. From a
+practical standpoint, our module will extract the processor
+feature flag and check related flags, selecting at runtime the set of
+functions supporting the most advanced ISA (AVX-512, AVX2 or AVX/SSE),
+or fallback to the default basic module if the processor has no
+support for such extensions, as shown in Figure~\ref{fig:512flow}.
 %
-To be more specific and precise, we explicitly check CPUID -- a processor
-supplementary instruction allowing software to discover details of the processor, to
-determine processor type and whether features such as SSE/AVXs are implemented and supported.
+To be more specific, we explicitly check CPUID -- a processor
+supplementary instruction allowing software to discover details of the
+processor, to determine processor type and whether features such as
+SSE/AVXs are implemented and supported.
 
 \begin{figure}[h]
     \centering
@@ -566,7 +579,7 @@ determine processor type and whether features such as SSE/AVXs are implemented a
     \centering
     % trim={<left> <lower> <right> <upper>}
     \includegraphics[scale=.45]{avx-graph.pdf}
-    \caption{Integrate and automatically activate the AVX component into the OMPI build system}
+    \caption{Integrate and automatically activate the AVX component into the \ompi build system}
     \label{fig:512flow}
 \end{figure}
 
@@ -575,26 +588,33 @@ extended out the scope of reduction operation to general mathematics and logic o
 This advanced operation module/code-snippet can be easily adapted to other computational intensive software stacks.
 
 To use vector instructions in applications, it can be exploited in several fashions: 
-(a) relying on automatic vectorization support that provided by the compiler;
+(a) relying on automatic vectorization support provided by the compiler;
 (b) explicitly calling vector instructions from assembly or via intrinsic functions;
-(c) adapting intrinsic functions into programming models or languages for applications to use.
-The first strategy by using auto-vectorization,
-it is portable and "future-proof", which means that it can quickly adapt code to
-a future generation of processors, simply re-compilation is needed. However,
-to effectively use automatic vectorization, programmers must follow
-guidelines and restrictions for vectorizable code, which largely depends on the capability and efficiency of a specific compiler.
+(c) adapting intrinsic functions into programming models or languages
+for applications to use.
 %
-And programmers also need to be aware of the specifics of the instructions that are supported by a processor.
-Additionally, compilers have strong limitations in the analysis and code transformations phases
-that prevent an efficient extraction of SIMD parallelism in real applications~\cite{auto_Evaluation}.
+The first strategy by using auto-vectorization, is portable and
+"future-proof", which means that it can quickly adapt code to a future
+generation of processors, with the only required step being a
+re-compilation of the code. However, to effectively use automatic
+vectorization, programmers must follow guidelines and restrictions for
+vectorizable code, and provide compile-time options largely dependent
+on the capability and efficiency of a specific compiler.
 %
-For the second method, it allows excellent control over the very low-level instruction stream, but the use of
-intrinsics in every application is time-consuming and error-prone for application programmers and users.
+And programmers also need to be aware of the specifics of the
+instructions that are supported by a processor.  Additionally,
+compilers have strong limitations in the analysis and code
+transformations phases that prevent an efficient extraction of SIMD
+parallelism in real applications~\cite{auto_Evaluation}.
 %
-For our work, to facilitate and promote the use of AVX-512 features,
-we prefer to adapt those advantages of long vectors load/store and computation 
-into a widely-used programming model -- \ompi, we use intrinsics and compiling flags together and concurrently
-to guide the compiler in the vectorization phase to achieve outstanding performance.
+The second method allows more control over the very low-level
+instruction stream, but the use of intrinsics is time-consuming and
+error-prone for application programmers and users.
+%
+For our work, to integrate the use of AVX-512 features in the \ompi
+stack, we prefer to adopt the second approach -- we use intrinsics and
+compile flags together to guide the compiler in the vectorization
+phase to maximize performance.
 
 A reduction is a common operation encountered in many scientific applications.
 Those applications have large amounts of data-level parallelism and should be able
@@ -628,11 +648,12 @@ single source vector and deliver a scalar result.
 Intel AVX-512 intrinsic provides arithmetic reduction operation for integer and
 float-pointing, also supports logical reduction operations for an integer type.
 This gives the chance to create AVX-512 intrinsic based reduction support in \mpi which
-will highly increase the parallelization and performance of \mpi local reduction.
+will highly increase the performance of \mpi local reduction.
 Additionally, AVX-512 can perform scatter reduction operation with the accomplished
 support of predicate vector register, which behaves in a vectorized manner. This profoundly
 expands the limitation of consecutive memory layout for reduction operation to non-contiguous
-data sets at the same time generic and efficient.
+data sets at the same time generic and efficient, but such operations
+are not needed for the predefined MPI reduction operations.
 
 \begin{algorithm}[t]
 \caption{AVX based reduction algorithm}\label{fig:reduce_algorithm}
@@ -647,7 +668,8 @@ data sets at the same time generic and efficient.
 \Procedure{ReductionOp}{ $in\_buf, inout\_buf, count$ }
 %\If {( $blocklen$ $\geqslant$ $svcntb$ )}
   \State $types\_per\_step$ = $vector\_length (512)$ / ($8$ $\times$ $sizeof\_type$)
-%\EndIf
+  % \EndIf
+  \State{\#pragma unroll}
 \For { $k \gets types\_per\_step $ to $ count$}
   \State {\_mm512\_loadu\_si512 from $in\_buf$}
   \State {\_mm512\_loadu\_si512 from $inout\_buf$}
@@ -689,8 +711,9 @@ data sets at the same time generic and efficient.
 \end{algorithm}
 
 %
-For our optimized reduction operation, we employ and apply multiple methods to investigate to achieve the
-most optimal performance on different processors, as shown in algorithm\ref{fig:reduce_algorithm}.
+For our optimized reduction operation, we employ and apply multiple
+methods to investigate how to achieve the
+most best performance on different processors, as shown in algorithm\ref{fig:reduce_algorithm}.
 For a better description, in the rest of the paper, we assume that the hardware supports AVX-512.
 %avx512
 In the algorithm's for-loop section: First of all, we explicitly use 512 bits long vector loads and stores for memory operation rather than using the memory copy (memcpy) function provided by
@@ -705,9 +728,10 @@ then we fallback to use YMM registers to process elements that fit in the 256 bi
 And so on, then we execute with 128 bits vectors.
 %Duff
 
-Eventually, we reach the last section of the optimization.
-Significant vectorized loop execution time is often spent in remainder
-loops dealing with just a few elements that cannot full-fill a vector.
+Eventually, we reach the last section of the optimization. We have
+noticed that depending on the number of elements to apply the
+operation on, significant execution time is often spent in the
+prologue, that deals with the remainder, those few elements that cannot full-fill a vector.
 Intel provides AVX mask intrinsics for mask operations that can vectorize the remainder loop.
 Still, significant overhead is involved in creating and initializing the mask and
 executing a separate and additional code path, which can result in low SIMD efficiency.
@@ -718,11 +742,13 @@ because of the overhead of masked operations and hardware.
 Typically the compiler can determine if the remainder should be vectorized
 based on an estimate of the potential performance benefit. When trip count information for a
 loop is unavailable, however, it will be difficult for the
-compiler to make the optimal decision.
+compiler to make the right decision.
 %
-For this part of the remainder, we use Duff's device which we manually implement
-loop unrolling by interleaving two syntactic constructs of C: the do-while loop
-and a switch statement, which helps the compiler to optimize the device correctly.
+Therefore for the part of the remainder, we use Duff's
+device~\cite{wiki:duff} manually implementing a loop unrolling by
+interleaving two syntactic constructs of C: the do-while loop and a
+switch statement, which helps the compiler to optimize the device
+correctly.
 %
 We benefit from two aspects of Duff's device. First of all, the loop is unrolled,
 which trades larger code size for more speedup by avoiding some of the overhead
@@ -744,16 +770,24 @@ The function calculates "count \% 8" for the switch statement to figure out what
 Then the loop continues to deal with blocks of eight elements.
 
 %
-Table\ref{tab:parameters} shows
-the variety of \mpifunc{Types} and \mpifunc{Ops} are supported in our optimized reduction operation module.
-We can see our implementation supports all combination of all types and operations in \mpi standard.
-"-" indicates the logistic operations that are not applicable for float pointing.
-Table\ref{tab:parameters1} lists the supported x86 instruction set architectures and related CPU flags from
-legacy SSE to the latest AVX512 instruction sets. To be noted, our work mainly focuses on the "Fundamental" feature instruction set with flag AVX512F, available on Knights Landing processors and Intel Xeon processors. It contains vectorized arithmetic operations, comparisons, type conversions,
-data movement, data permutation, bitwise logical operations on vectors and masks, and miscellaneous
-math functions. This is similar to the core feature set of the AVX2 instruction set, with
-the difference of more comprehensive and longer registers, and more functional supports
-for float-pointing and integer.
+Table~\ref{tab:parameters} shows the variety of \mpifunc{Types} and
+\mpifunc{Ops} are supported in our optimized reduction operation
+module, which matches the combination of types and operations defined
+by the \mpi standard.
+% We can see our implementation supports all combination of all types
+% and operations in \mpi standard.  "-" indicates the logistic
+% operations that are not applicable for float pointing.
+Table\ref{tab:parameters1} lists the supported x86 instruction set
+architectures and related CPU flags from legacy SSE to the latest
+AVX512 instruction sets. To be noted, our work mainly focuses on the
+"Fundamental" feature instruction set with flag AVX512F, available on
+Knights Landing processors and Intel Xeon processors. It contains
+vectorized arithmetic operations, comparisons, type conversions, data
+movement, data permutation, bitwise logical operations on vectors and
+masks, and miscellaneous math functions. This is similar to the core
+feature set of the AVX2 instruction set, with the difference of more
+comprehensive and longer registers, and more functional supports for
+float-pointing and integer.
 
 \begin{table}
   \centering
@@ -792,12 +826,14 @@ for float-pointing and integer.
 
 \section{Performance tool evaluation}\label{sec:perf}
 %/todo fix text
-In this section, we study the performance benefits of our AVX-512 enabled \ompi reduction
-operation by Performance API (PAPI)~\cite{papi} -- a tool that can measure
-application performance in these increasingly complex environments, and must also
-increase the richness of their measurements to provide insights into the
-increasingly intricate ways in which software and hardware interact.
-It is a portable and efficient API to access hardware performance
+To understand the performance we analyzed our AVX-512 enabled \ompi reduction
+operation using Performance API (PAPI)~\cite{papi} -- a tool that can expose
+hardware counters, allowing developers to correlate these counters
+with the application performance.
+% in these increasingly complex environments, and must also
+% increase the richness of their measurements to provide insights into the
+% increasingly intricate ways in which software and hardware interact.
+PAPI is a portable and efficient API to access hardware performance
 monitoring registers found on most modern microprocessors.
 It is also a standard API for accessing hardware
 performance counters available on most modern microprocessors. These counters exist
@@ -836,22 +872,26 @@ streams of micro-ops in the non-architected code path.
 \end{figure}
 
 
-Figure~\ref{fig:papi_ins} listed the total number of instructions, and memory access instructions of
+Figure~\ref{fig:papi_ins} shows the total number of instructions, and memory access instructions of
 load and store, and branch instructions.
 We can see that for our optimized reduction operation, the total number of
 instructions is largely reduced. Also, memory access and branch instructions
-are mostly decreased compare to the default implementation in \ompi.
+have decreased compare to the default implementation in \ompi.
 %to do add more
-It is because that longer vector can load and store more elements with each
-instruction compared to non-vector load and store, which means that we need
-fewer loads and stores dealing with the same amount of reduction data.
-Consequently, this will decrease the loop iteration.
-Our implementation reduced the number of loads and stores instructions by a factor of
-90X and 60X, respectively.
-At the same time, for branching instructions, our optimization decreased by 60X.
-We also investigated the cache misses of L1 and L2 caches. Because we are dealing with an extensive contiguous
-data, which means data access patterns are very regular and easy to predict.
-The prefetcher can always fetch the accurate data so that the cache misses are not showing significant variation.
+The explanation here is straightforward: longer vectors can load and
+store more elements with each instruction compared to non-vector load
+and store, which means that we need fewer loads and stores dealing
+with the same amount of reduction data.  Consequently, this will
+decrease the loop iteration.
+%
+Our implementation reduced the number of loads and stores instructions
+by a factor of 90X and 60X, respectively.  At the same time, for
+branching instructions, our optimization decreased by 60X.  We also
+investigated the cache misses of L1 and L2 caches. Because we are
+dealing with an extensive contiguous data, which means data access
+patterns are very regular and easy to predict, all predicted accesses
+will be consumed so that the cache misses are not showing significant
+variation.
 
 Figure~\ref{fig:papi_br} illustrates the instruction count details
 of branch instructions of both AVX512 optimized implementation and the default
@@ -875,7 +915,15 @@ more benefits compare to others, which shows conditional branch instructions are
 %PAPI_LST_INS 0x8000003c  Yes  Load/store instructions completed
 
 \section{Experimental evaluation}\label{sec:experiments}
-We conduct our experiments on a local cluster which is an Intel(R) Xeon(R) Gold 6254 based server running at 3.10 GHz. Our work is based upon OMPI master branch, revision \#75a539. Each experiment is repeated 30 times, and here we present the average results. For all tests, we use a single node with one process, because our optimization aims to improve the performance of the computation part of reduction operation rather than the communication. It is more evident and reasonable to demonstrate this on a single core.
+We conduct our experiments on a local cluster which is an Intel(R)
+Xeon(R) Gold 6254 based server running at 3.10 GHz. Our work is based
+upon \ompi master branch, revision \#75a539. Each experiment is
+repeated 30 times, and we present the average results (due to the
+stability of the results we choose not to clutter the graphs with
+standard deviation). For all tests, we use a single node with one
+process, because our optimization aims to improve the performance of
+the computation part of reduction operation rather than the
+communication.
 
 This section compares the performance of the reduction operation with two
 implementations.
@@ -892,23 +940,35 @@ We present to compare arithmetic SUM and logical BAND.
 For the experiments, we flushed cache to ensure we are not reusing cache for a fair comparison.
 
 Figure~\ref{fig:avx_sum} and Figure~\ref{fig:avx_band} show the result for the
-\mpifunc{SUM} and \mpifunc{BAND}, due to the limited length of the paper, we cannot
-include the assemble code here. But it should be noted for the default \ompi's compiler, despite
-the optimization flags are provided, it did not generate auto-vectorized code. Our optimization is
-using intrinsics which gives us complete control of the low-level details
-at the expense of productivity and portability.
+\mpifunc{SUM} and \mpifunc{BAND}.
+%, due to the limited length of the paper, we cannot
+%include the assemble code here.
+It should be noted for the default \ompi's compiler, despite the
+provided optimization flags, did not generate auto-vectorized
+code. Our optimization is using intrinsics which gives us complete
+control of the low-level details at the expense of productivity and
+portability.
 
-Results demonstrate that with AVX512-enabled operation, it is 10X faster than element-wise operation.
-To be more specific, when the total size of the reduction elements is small, the performance benefit is
-not significant. However, when the buffer size bigger than 4KB, the performance advantage becomes consistent and stable.
-We also compare MPI operation together with memcpy, which indicates the peak memory bandwidth.
-To make a fair comparison, we list the complete execution sequence of reduction operation and memory copy operation.
-We can see that for a \mpi reduction operation, it needs two loads from both input memory, and then do an additional computation, eventually followed by one store to save the results into memory. For memcpy it only needs one load from source and one store to destination.
-The result shows that even with an additional computation included, and our optimized AVX512 reduction operation achieves
-a high level of memory bandwidth which is comparable as memcpy.
-To be remarked, when the reduction buffer size reaches 1 megabyte,
-our implementation achieves almost the same performance as memcpy which indicates
-we gain peak memory bandwidth.
+Results demonstrate that using AVX512-enabled operation the
+performance can be improved by a factor of magnitude compared with the
+element-wise operation.  To be more specific, when the total size of
+the reduction elements is small, the performance benefit remains low.
+%
+However, when the buffer size bigger than 4KB, the performance
+advantage becomes considerable and stable.  We also compare MPI
+operation together with memcpy, to indicates the peak memory bandwidth
+for a similar operation.  To make a fair comparison, we list the
+complete execution sequence of reduction operation and memory copy
+operation.  We can see that for a \mpi reduction operation, it needs
+two loads from both input memory, and then do an additional
+computation, eventually followed by one store to save the results into
+memory. For memcpy it only needs one load from source and one store to
+destination.  The result shows that even with an additional
+computation included, and our optimized AVX512 reduction operation
+achieves a high level of memory bandwidth which is comparable as
+memcpy.  To be remarked, when the reduction buffer size reaches 1
+megabyte, our implementation achieves almost the same performance as
+memcpy which indicates we maximize the memory bandwidth.
 
 \begin{figure}[h]
     \centering
