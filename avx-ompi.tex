@@ -136,7 +136,7 @@
   The evaluation of the resulting software stack under different
   scenarios demonstrates that the solution is at the same time generic
   and efficient.  Experiments are conducted on an Intel Xeon Gold
-  cluster, which shows our AVX512 optimized reduction operations
+  cluster, which shows our AVX-512 optimized reduction operations
   achieve 10X performance benefits than \ompi default for MPI local
   reduction.
 %
@@ -478,7 +478,7 @@ The implementation supports multiple ISA, covering most Intel processors version
 
 \section{Design and implementation}\label{sec:design}
 \subsection{Intel Advanced Vector Extension}
-Intel Advanced Vector Extension 2 (Intel AVX2), is a significant improvement to Intel Architecture.
+Intel Advanced Vector Extension 2 (Intel AVX2), is a significant improvement to Intel ISA.
 It supports the vast majority of previous generations 128-bit SIMD float-point
 and integer instructions to operate on 256-bit YMM registers to support 256-bit operations.
 %
@@ -514,9 +514,9 @@ Intel AVX-512 support, AVX and AVX2 instructions operate on the lower 128 or 256
 
 \subsection{Intrinsics}
 Intel intrinsics are built-in functions that provide access to the ISA functionality
-using C/C++ style coding instead of assembly language. Without Intel intrinsic was
-supported, users had to write assembly code directly to manipulate SIMD
-instructions arbitrarily.
+using C/C++ style coding instead of assembly language. Without support for such intrinsic,
+users would have to write assembly code directly to manipulate SIMD
+instructions.
 However, Intel has defined several sets of intrinsic functions that are implemented
 in the Intel Compiler. These types empower the programmer to choose the implementation
 of an algorithm directly while allowing the compiler to perform register allocation
@@ -529,10 +529,10 @@ accurately, and more effectively than writing lower-level code.
 We describe the primary AVX-512 intrinsic functions that we are interested in our kernel:
 
 \begin{enumerate}
-  \item \emph{\textbf{\textit{\_\_m512i\ \_mm512\_loadu\_si512\ (void const\* mem\_addr)}}} \\
+  \item \emph{\textbf{\textit{\_\_m512i\ \_mm512\_loadu\_si512\ (void const mem\_addr)}}} \\
   Load 512-bits of integer data from memory into "dst.mem\_addr" does not need to be aligned on any particular boundary.
   This function is converted into \\ Instruction: \emph{\textbf{\textit{vmovdqu32  zmm,  m512}}}.
-  \item \emph{\textbf{\textit{\_\_m512i\ \_mm512\_add\_epi32\ (\_\_m512i a,\ \_\_m512i b)}}}
+  \item \emph{\textbf{\textit{\_\_m512i\ \_mm512\_add\_epi32\ (\_\_m512i a,\ \_\_m512i b)}}} \\
   Add packed 32-bit integers in "a" and "b", and store the results in destination, here we use 32-bits integer as an example.
   This function is converted into \\ Instruction: \emph{\textbf{\textit{vpaddd  zmm,  zmm,  zmm}}}.
   \item \emph{\textbf{\textit{\_\_m512i\ \_mm512\_storeu\_si512\ (void const\* mem\_addr, \_\_m512i a)}}} \\
@@ -606,13 +606,13 @@ under particular circumstance or with a specific compiler or constrains. Sometim
 it may suffer from dependencies across multiple loop iterations.
 %
 Figure~\ref{fig:sse_avx} illustrates the difference between a scalar operation and
-a vector operation for AVX, AVX2 or AVX512, respectively.
+a vector operation for AVX, AVX2 or AVX-512, respectively.
 %
 It is an example of a vector instruction processing multiple elements together at the same time,
 compared to executing the additions sequentially. Where a scalar processor would have to perform a load, an
 computation and a store instruction for every element, a vector processor perform one load, one computation and
 one store for multiple elements.
-An AVX512 SIMD-vector can process multiple elements at
+An AVX-512 SIMD-vector can process multiple elements at
 the same time. For example, it can store 8 double-precision floating-point numbers or 16 integer values, also allow the computation of those elements by executing a single instruction.
 AVX-512 reduction instructions perform arithmetic horizontally across active elements of a
 single source vector and deliver a scalar result.
@@ -621,12 +621,12 @@ single source vector and deliver a scalar result.
     \centering
     % trim={<left> <lower> <right> <upper>}
     \includegraphics[width=\linewidth]{sse_avx.pdf}
-    \caption{Example of single precision floating-point values using : (\colorbox{blue}{}) scalar standard C code, (\colorbox{green}{}) AVX SIMD vector of 4 values , (\colorbox{red}{}) AVX2 SIMD vector of 8 values, (\colorbox{yellow}{}) AVX512 SIMD vector of 16 values}
+    \caption{Example of single precision floating-point values using : (\colorbox{blue}{}) scalar standard C code, (\colorbox{green}{}) AVX SIMD vector of 4 values , (\colorbox{red}{}) AVX2 SIMD vector of 8 values, (\colorbox{yellow}{}) AVX-512 SIMD vector of 16 values}
     \label{fig:sse_avx}
 \end{figure}
 
 Intel AVX-512 intrinsic provides arithmetic reduction operation for integer and
-float-pointing, also supports logical reduction operations for an integer type.
+floating-point, also supports logical reduction operations for an integer type.
 This gives the chance to create AVX-512 intrinsic based reduction support in \mpi which
 will highly increase the parallelization and performance of \mpi local reduction.
 Additionally, AVX-512 can perform scatter reduction operation with the accomplished
@@ -746,14 +746,15 @@ Then the loop continues to deal with blocks of eight elements.
 %
 Table\ref{tab:parameters} shows
 the variety of \mpifunc{Types} and \mpifunc{Ops} are supported in our optimized reduction operation module.
-We can see our implementation supports all combination of all types and operations in \mpi standard.
-"-" indicates the logistic operations that are not applicable for float pointing.
-Table\ref{tab:parameters1} lists the supported x86 instruction set architectures and related CPU flags from
-legacy SSE to the latest AVX512 instruction sets. To be noted, our work mainly focuses on the "Fundamental" feature instruction set with flag AVX512F, available on Knights Landing processors and Intel Xeon processors. It contains vectorized arithmetic operations, comparisons, type conversions,
+We can see our implementation supports most combination of types and operations in \mpi standard.
+"-" indicates the logistic operations that are not applicable for floating-point.
+Table\ref{tab:parameters1} lists the supported x86 instruction set architectures and related CPU flags from legacy SSE to the latest AVX-512 instruction sets.
+%
+To be noted, our work mainly based on the "Fundamental" feature instruction set with flag AVX512F, available on Knights Landing processors and Intel Xeon processors. It contains vectorized arithmetic operations, comparisons, type conversions,
 data movement, data permutation, bitwise logical operations on vectors and masks, and miscellaneous
-math functions. This is similar to the core feature set of the AVX2 instruction set, with
+math functions. This is similar to the core feature sets of the AVX2 instructions, with
 the difference of more comprehensive and longer registers, and more functional supports
-for float-pointing and integer.
+for floating-point and integer.
 
 \begin{table}
   \centering
@@ -777,7 +778,7 @@ for float-pointing and integer.
 
 \begin{table}
   \centering
-  \caption{Supported CPU flags}\label{fig:cpuflags}
+  \caption{Supported ISA and CPU flags}\label{fig:cpuflags}
   \label{tab:parameters1}
   \small
   \begin{tabular}{cclll}
@@ -791,11 +792,10 @@ for float-pointing and integer.
 \end{table}
 
 \section{Performance tool evaluation}\label{sec:perf}
-%/todo fix text
-In this section, we study the performance benefits of our AVX-512 enabled \ompi reduction
+In this section, we study the performance benefits of our AVX-512 optimized \ompi reduction
 operation by Performance API (PAPI)~\cite{papi} -- a tool that can measure
-application performance in these increasingly complex environments, and must also
-increase the richness of their measurements to provide insights into the
+application performance in these increasingly complex environments 
+to provide insights into the
 increasingly intricate ways in which software and hardware interact.
 It is a portable and efficient API to access hardware performance
 monitoring registers found on most modern microprocessors.
@@ -807,14 +807,9 @@ correlation between the structure of source or object code and the efficiency of
 of that code to the underlying architecture. This correlation has a variety of uses in
 performance analysis and tuning.
 
-%a standard application programming interface (API) for accessing
-%hardware performance counters available on most modern microprocessors. These counters exist as a small set of
-%registers that count events, which are occurrences of specific signals related to the processor’s function.
-
 We aim to use hardware performance counters in PAPI to measure two aspects:
 (1) Memory operation instructions: the total number of load and store instructions.
-(2) Branching instructions: number of branch execution instructions including branch instructions taken and not-taken,
-instructions mispredicted and instructions correctly predicted, which have a significant impact on performance.
+(2) Branching instructions: number of branch execution instructions including branch instructions taken and not-taken, instructions mispredicted and instructions correctly predicted, which have a significant impact on performance.
 For example, mispredicted branches can disrupt streams of micro-ops or cause
 the execution engine to waste execution resources on executing
 streams of micro-ops in the non-architected code path.
@@ -823,7 +818,7 @@ streams of micro-ops in the non-architected code path.
     \centering
     % trim={<left> <lower> <right> <upper>}
     \includegraphics[width=\linewidth]{papi_ins.pdf}
-    \caption{Comparison between AVX-512 optimized OMPI and default OMPI for MPI\_SUM reduction with PAPI instruction events overview}
+    \caption{Comparison between AVX-512 optimized OMPI and default OMPI for MPI\_SUM reduction with PAPI (summary of different types of instruction)}
     \label{fig:papi_ins}
 \end{figure}
 
@@ -835,13 +830,12 @@ streams of micro-ops in the non-architected code path.
     \label{fig:papi_br}
 \end{figure}
 
-
-Figure~\ref{fig:papi_ins} listed the total number of instructions, and memory access instructions of
+Figure~\ref{fig:papi_ins} lists the total number of all instructions, and memory access instructions of
 load and store, and branch instructions.
 We can see that for our optimized reduction operation, the total number of
 instructions is largely reduced. Also, memory access and branch instructions
 are mostly decreased compare to the default implementation in \ompi.
-%to do add more
+%
 It is because that longer vector can load and store more elements with each
 instruction compared to non-vector load and store, which means that we need
 fewer loads and stores dealing with the same amount of reduction data.
@@ -854,13 +848,13 @@ data, which means data access patterns are very regular and easy to predict.
 The prefetcher can always fetch the accurate data so that the cache misses are not showing significant variation.
 
 Figure~\ref{fig:papi_br} illustrates the instruction count details
-of branch instructions of both AVX512 optimized implementation and the default
-element-wise reduction method. By using long vectors, we largely decreased the "for loop" of the reduction
-operation. Consequently, the AVX512 code has much less control and branching instructions.
+of branch instructions of both AVX-512 optimized implementation and the default
+element-wise reduction method. By using long vectors, we largely decreased the "for loop" of the reduction operation.
+Consequently, the AVX-512 code has much less control and branching instructions.
 Which means we have less conditional branch instructions.
 Especially, for conditional branch instructions not taken, we gain
-more benefits compare to others, which shows conditional branch instructions are being correctly predicted.
-%todo add more with description
+more benefits compare to others, which shows more conditional branch instructions are being correctly predicted.
+
 
 %PAPI_BR_UCN  0x8000002a  Yes  Unconditional branch instructions
 %PAPI_BR_CN   0x8000002b  No   Conditional branch instructions
@@ -875,13 +869,13 @@ more benefits compare to others, which shows conditional branch instructions are
 %PAPI_LST_INS 0x8000003c  Yes  Load/store instructions completed
 
 \section{Experimental evaluation}\label{sec:experiments}
-We conduct our experiments on a local cluster which is an Intel(R) Xeon(R) Gold 6254 based server running at 3.10 GHz. Our work is based upon OMPI master branch, revision \#75a539. Each experiment is repeated 30 times, and here we present the average results. For all tests, we use a single node with one process, because our optimization aims to improve the performance of the computation part of reduction operation rather than the communication. It is more evident and reasonable to demonstrate this on a single core.
+We conduct our benchmark experiments on a local cluster, which is an Intel(R) Xeon(R) Gold 6254 based server running at 3.10 GHz. Our work is based upon OMPI master branch, revision \#75a539. Each experiment is repeated 30 times, and here we present the average results. For all tests, we use a single node with one process, because our optimization aims to improve the performance of the computation part of reduction operation rather than the communication. It is more evident and reasonable to demonstrate this on a single core.
 
 This section compares the performance of the reduction operation with two
 implementations.
 For \ompi default reduction operation base module, it
 performs element-wise computation across two input buffers. For each loop iteration,
-it processes two elements. Our new implementation we use AVX-512 vector instruction
+it processes two elements. Our optimized implementation use AVX-512 vector instruction
 executing reduction operation on the same inputs, but for each iteration, it
 deals with two vectors containing all the elements within the vectors which represent
 a vector-wise operation.
@@ -898,13 +892,13 @@ the optimization flags are provided, it did not generate auto-vectorized code. O
 using intrinsics which gives us complete control of the low-level details
 at the expense of productivity and portability.
 
-Results demonstrate that with AVX512-enabled operation, it is 10X faster than element-wise operation.
+Results demonstrate that with AVX-512 optimized operation, it is 10X faster than element-wise operation.
 To be more specific, when the total size of the reduction elements is small, the performance benefit is
-not significant. However, when the buffer size bigger than 4KB, the performance advantage becomes consistent and stable.
+not significant noticeable. However, when the buffer size bigger than 4KB, the performance advantage becomes consistent and stable.
 We also compare MPI operation together with memcpy, which indicates the peak memory bandwidth.
-To make a fair comparison, we list the complete execution sequence of reduction operation and memory copy operation.
+To make a fair comparison, we list the complete execution sequence of reduction operation and memcpy.
 We can see that for a \mpi reduction operation, it needs two loads from both input memory, and then do an additional computation, eventually followed by one store to save the results into memory. For memcpy it only needs one load from source and one store to destination.
-The result shows that even with an additional computation included, and our optimized AVX512 reduction operation achieves
+The result shows that even with an additional computation included, and our optimized AVX-512 reduction operation achieves
 a high level of memory bandwidth which is comparable as memcpy.
 To be remarked, when the reduction buffer size reaches 1 megabyte,
 our implementation achieves almost the same performance as memcpy which indicates
@@ -914,7 +908,7 @@ we gain peak memory bandwidth.
     \centering
     % trim={<left> <lower> <right> <upper>}
     \includegraphics[trim={0 0 0 1.5cm},clip, width=\linewidth]{avx_sum.pdf}
-    \caption{Comparison of MPI\_SUM with AVX-512 reduction enable and disable for MPI\_SUM together with memcpy}
+    \caption{Comparison of MPI\_SUM with AVX-512 optimized OMPI and default OMPI together with memcpy}
     \label{fig:avx_sum}
 \end{figure}
 
@@ -922,7 +916,7 @@ we gain peak memory bandwidth.
     \centering
     % trim={<left> <lower> <right> <upper>}
     \includegraphics[trim={0 0 0 1.5cm},clip,width=\linewidth]{avx_band.pdf}
-    \caption{Comparison of MPI\_BAND with AVX-512 reduction enable and disable for MPI\_SUM together with memcpy}
+    \caption{Comparison of MPI\_BAND with AVX-512 optimized OMPI and default OMPI together with memcpy}
     \label{fig:avx_band}
 \end{figure}
 
@@ -973,7 +967,7 @@ applies the reduction and then proceeds to send it again to the next process in 
 %
 We can see that during the allreduce processing phase, there are $P * ($N - 1$)$ reduction operations
 occurred with big fusion buffer size, which is very computation intensive.
-Our AVX512 optimized reduction operations can particularly improve the performance 
+Our AVX-512 optimized reduction operations can particularly improve the performance 
 of the computation and reduction part of those collective operations.
 
 We conducted our experiments on Stampede2 with Intel Xeon Platinum 8160 ("Skylake") nodes; each node has 48 cores with two sockets. For each node, it has 192GB DDR4 memory. For each core, it has 32KB L1 data cache and 1MB L2. The nodes are connected via Intel Omni-Path network.
@@ -984,46 +978,45 @@ We experimented with TensorFlow CNN benchmarks using Horovod with tensorflow-1.1
     % trim={<left> <lower> <right> <upper>}
     \includegraphics[width=\linewidth]{horovod_tacc.pdf}
     \caption{tf\_cnn\_benchmarks results using Horovod (model: alexnet) on stampede2 
-    with AVX512-optimized \ompi and default \ompi}
+    with AVX-512 optimized OMPI and default OMPI}
     \label{fig:horovod_tacc}
 \end{figure}
 
 Figure~\ref{fig:horovod_tacc} shows the performance comparison of
-our AVX512 optimized reduction operation and the default reduction operation in \ompi for Horovod (with synthetic datasets and AlexNet model) to train an application called tf\_cnn\_benchmarks~\cite{cnn_Tensorflow}.
+our AVX-512 optimized reduction operation and the default reduction operation in \ompi for Horovod (with synthetic datasets and AlexNet model) to train an application called tf\_cnn\_benchmarks~\cite{cnn_Tensorflow}.
 Comparing to default element-wise reduction
 implementations, with the increasing number of processes,
 our design gains more and more improvements, which start from 5.45\% eventually to 12.38\% faster than default \ompi on 192 processes and 1536 processes respectively.
 We notice that the performance benefit increases with more processes/nodes. 
 It is because with more processes, the ratio of time cost by reduction operation increases 
 compared to the running time of the entire application. 
-We can see that with more nodes, the benefit of our AVX512 optimized \ompi is more considerable.
+We can see that with more nodes, the benefit of our AVX-512 optimized \ompi is more considerable.
 
 %to do check verbs
 \section{Conclusion}\label{sec:conclusion}
-In this paper, we demonstrated the benefits of Intel AVX, AVX2 and AVX512 vector operations. We
+In this paper, we demonstrated the benefits of Intel AVX, AVX2 and AVX-512 vector operations. We
 addressed the performance advantages of different features introduced by AVX
-with longer vector length compared. Furthermore,
-we extended our investigation and analysis to introduced
+with longer vector length. Furthermore, we extended our investigation and analysis to introduce
 an optimistic \mpi optimization.
 %
 We introduced
 a new reduction operation module in \ompi using AVXs' intrinsics supporting
 different kinds of \mpi reduce operations for multiple \mpi types. We
 demonstrated the efficiency of our vector reduction operation by a benchmark
-calling \mpifunc{Local_reduce}. Experiments are conducted on an Intel Xeon Gold cluster,
-which shows with AVX512 enabled reduction operations we achieve 10X performance benefits.
+\mpifunc{Local_reduce}. Experiments are conducted on an Intel Xeon Gold cluster,
+which shows with AVX-512 optimized reduction operations, we achieve 10X performance benefits.
+%
 To further validate the performance improvements,
 experiments are conducted using Skylake processor, and we tested a deep learning
-application using distributed model Horovod, which calculate and update the gradient to adjust the weights using \ompi allreduce.
+application using distributed model Horovod, which uses \ompi allreduce to calculate and update the gradient to adjust the weights.
 Just by switching to our new reduction strategy, we achieve a speedup of 12.38\% with 1536 processes.
+This provides a better solution for reduction operation
+in distributed neural network training applications whose performance is limited by the time-consuming reduce calculation, because the number of reductions and the data amount are huge.
+%
 Our analysis and implementation of \ompi optimization provide useful insights and
 guidelines on how wide vector operations, in this case, Intel AVX extensions, can be
 used in actual high-performance computing platforms and
 software to improve the efficiency of parallel runtimes and applications.
-Also with our AVX512 enabled \ompi it provides a better solution for reduction operation
-in distributed neural network
-training applications, the performance is limited by the time-consuming reduce calculation,
-because the number of reductions and the data amount are huge.
 
 \section*{Acknowledgement}
 %
