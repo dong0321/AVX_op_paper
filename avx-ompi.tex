@@ -217,14 +217,14 @@ A large body of literature has been focusing on employing DLP via vector
 execution and code vectorization~\cite{Vectorizing_Compilers1,vectorizingcompilers,SIMD_Vector_Operations}, and HPC, with its ever growing demand for compute capabilities has been quick to embrace vector processors and harness this additional compute power.
 Vectorization as an essential factor of processors' capability to apply
 a single instruction on multiple data, continuously improves
-from one CPU generation to the next, by using larger vector register, gather/scatter capabilities and much more.
+from one CPU generation to the next, by using larger vector registers, gather/scatter capabilities and much more.
 Compared to traditional scalar processors, extension vector processors support
 SIMD and more powerful instructions operating
 on vectors with multiples elements, and are capable of generating orders of magnitude faster memory accesses and data computations.
 %involved rather than a single element, which
 %could achieve maximum computational power.
 Over the last decade, the difference between a scalar code and its vectorized equivalent
-increased from a factor of 4 with SSE, up to a factor of 16 with AVX-512~\cite{Pentium_III,Haswell_detail,avx-info}, highlighting the importanve of employing vectorized code whenever possible.
+increased from a factor of 4 with SSE, up to a factor of 16 with AVX-512~\cite{Pentium_III,Haswell_detail,avx-info}, highlighting the importance of employing vectorized code whenever possible.
 %Therefore, it is essential to vectorize code to achieve high performance on modern CPUs by using dedicated instructions and registers.
 The conversion of a scalar code into a vectorized
 equivalent can be rather straightforward for many classes of algorithms
@@ -236,7 +236,7 @@ versions using widely available compilers intrinsics.
 
 There are efforts to keep improving the vector processors by increasing the vector
 length and adding new vector instructions.
-As an example, Intel first version of vectorized instruction set, MMX was quickly superseded by more advanced vector integer SSE and AVX instructions~\cite{intel_sse, intel_avx, avxsets},
+As an example, Intel's first version of vectorized instruction set, MMX was quickly superseded by more advanced vector integer SSE and AVX instructions~\cite{intel_sse, intel_avx, avxsets},
 then expanded to Haswell instructions as 256 bits (AVX2),
 and then with the arrival of the Knights Landing processor~\cite{avx-info} the more advanced
 AVX-512~\cite{Intelref} was introduced supporting 512-bit wide SIMD registers (ZMM0-ZMM31)
@@ -298,13 +298,13 @@ The MPI standard provides an entire set of communication primitives, between pai
 %As many scientific applications operate on a large amount of data, manipulating and operating these data become complicated.
 %
 Therefore, there is no critical subset of MPI capability in particular, all MPI aspects are critical to some computation domains. There is however evidence that an optimized support for two-sided communications and for collective communications, will benefit a large number of parallel applications. As an example, machine learning applications running on distributed systems,
-critically depend on the performance of an MPI\_Allreduce, a reduction operations,
+critically depend on the performance of an MPI\_Allreduce, a reduction operation,
 for very large data sets to synchronize updating the weights matrix.
 
 Computation-oriented collective operations such as MPI\_Allreduce and MPI\_Reduce perform reductions on
 data along with the communications performed by collectives.
 These collectives typically encompass a memory-bound operation, which forces
-the computation to become the main bottleneck and limit the overall performance ofthe collective implementation.
+the computation to become the main bottleneck and limit the overall performance of the collective implementation.
 However, the existence of advanced architecture technologies introduced
 with wide vector extension and specialized arithmetic operations, calls for
 MPI libraries to provide support for such extensions, providing specialized functions
@@ -316,7 +316,7 @@ capable to extract most of the computational power of the processor and uncondit
 Unlike more traditional HPC application that embraced MPI long ago,
 machine learning and data science in general, were more reticent. However,
 a new trend has arisen lately, certainly in relation to the growth
-of the size of the problems, toward a more wide use of \mpi for the distributed training.
+of the size of the problems, toward a wider use of \mpi for the distributed training.
 
 As mentioned before, the most expensive step in the learning process, the reduction of the gradients, is entirely dependent on the performance of MPI\_Allreduce with a large amount of data (basically all the weights on the layer).
 Such reduction operations in machine learning applications
@@ -326,7 +326,7 @@ in, for example, neural networks, linear regressions and logistic
 regressions. Usually, this kind of reduction has two aspects: 1) the number of reduction
 operations is significant. 2) the data size used by each reduction operation is extremely large (with an extensive training model, the data could be in the hundreds of megabytes).
 %
-Li's~\cite{inproceedings} work explores the performance of all-reduce algorithms
+Li's~\cite{inproceedings} work explores the performance of allreduce algorithms
 and uses task-based frameworks to improve their performance. Specifically talking about AlexNet on ImageNet~\cite{NIPS2012_4824}, it points out that
 each step needs to perform a weights reduction with an estimated size
 of 200MB for extensive model training.
@@ -345,7 +345,7 @@ training, highlighting the need for a more efficient reduction implementation.
 Thus, for many applications it will be crucial to provide a highly optimized
 version of MPI\_Allreduce, and this requires to address the challenge of improving the performance of the predefined MPI operations. We tackle the above challenges and provide designs and implementations
 for reduction operations which are most commonly used by the computation
-collectives - MPI\_Reduce, MPI\_Allreduce and MPI\_Reduce\_local.
+collectives - MPI\_Reduce, MPI\_Allreduce and MPI\_Reduce\_Local.
 We propose extensions to multiple \mpi reduction methods to fully take
 advantage of the AVX-512 capabilities such as vector product to efficiently
 perform these operations.
@@ -423,7 +423,10 @@ loop fusion, load trading or data reuse.
 Petrogalli's work~\cite{sve_ml} explored the usage of SVE vector multiple
 instructions to optimize matrix multiplication in machine learning algorithm.
 %
-We can see, most of those work focused on using new instructions
+Zhong~\cite{dong_sve} used SVE load, gather and scatter instructions to optimize MPI datatype
+packing and unpacking in \ompi.
+%
+We can see, those work focused on using new instructions
 to improve the performance of a specific application or a specific mathematical algorithm.
 In our work, we study AVX-512 enabled features more comprehensively for
 all supported mathematical reduction functions and also provide
@@ -433,7 +436,7 @@ vectorized computations for applications to use.
 
 \subsection{\mpi reduction operation}
 Additionally, different techniques and
-efforts have been studied to optimize \mpi reduction operations. Jesper
+efforts have been studied to optimize \mpi reduction operations. Traff
 ~\cite{Neutral_MPI_Reduction} proposed a simple implementation of MPI library
 internal functionality that enabled MPI reduction operations to be performed
 more efficiently with increasing sparsity of the input vectors.
@@ -450,12 +453,12 @@ This approach provided more tolerance to system noise and also supported fine-gr
 multi-level topology-aware collective operations which can exploit the
 parallelism of heterogeneous architectures.
 %
-Michael~\cite{sparse-reduction} presented a pipeline algorithm for MPI Reduce
+Hofmann~\cite{sparse-reduction} presented a pipeline algorithm for MPI Reduce
 that used a Run Length Encoding scheme to improve the global reduction of sparse
 floating-point data.
-Patarasuk's work~\cite{allreduce-optimal} investigated implementations of the all-reduce operation
+Patarasuk's work~\cite{allreduce-optimal} investigated implementations of the allreduce operation
 with large data sizes and derived a theoretical lower bound on the communication time of this operation and developed
-a bandwidth optimal all-reduce algorithm on tree topologies.
+a bandwidth optimal allreduce algorithm on tree topologies.
 %
 Shan~\cite{shan-reduce} proposed to use idle threads on a many-core node in order to accelerate
 the local reduction computations, and also used data compression technique to compress sparse input data for reduction.
@@ -468,7 +471,7 @@ Most of those work focuses on improving the performance of
 communication either by relaxing dependencies or hiding the communication latency behind computation.
 And for the minority of those work that endeavors to strengthen the computation part,
 they usually have some requirements or limitations of data
-representation or need extra hardware such as GPU.
+representation or need extra hardware such as GPUs.
 Our AVX-512 arithmetic reduction
 optimizations seek to be more general, and use the newly available vector extensions to provide a
 straightforward set of predefined MPI operations, with no limitation of data representation or operations.
@@ -509,8 +512,8 @@ Thus, it has better compatibility with Intel AVX that is stronger than
 prior transitions to new widths for SIMD operations.
 For SSE and AVX, programs will suffer from performance penalties once mix them.
 However, the mixing of AVX and Intel AVX-512 instructions is supported without penalty.
-AVX registers YMM0–YMM15 map into the Intel AVX-512 registers
-ZMM0–ZMM15, very much like SSE registers map into AVX registers. Therefore, in processors with
+AVX registers YMM0--YMM15 map into the Intel AVX-512 registers
+ZMM0--ZMM15, very much like SSE registers map into AVX registers. Therefore, in processors with
 Intel AVX-512 support, AVX and AVX2 instructions operate on the lower 128 or 256 bits of the first 16 ZMM registers.
 
 \subsection{Intrinsics}
@@ -522,9 +525,9 @@ However, Intel has defined several sets of intrinsic functions that are implemen
 in the Intel Compiler. These types empower the programmer to choose the implementation
 of an algorithm directly while allowing the compiler to perform register allocation
 and instruction scheduling wherever possible. The intrinsics are portable among all
-Intel architecture-based processors supported by a compiler. The use of intrinsic
+Intel architecture-based processors supported by a compiler. The use of intrinsics
 allows developers to obtain performance close to the levels achievable and feasible with assembly.
-The cost of writing and maintaining programs with intrinsics is considerably less.
+The cost of writing and maintaining programs with intrinsics is considerably less than writing assembly code.
 In summary, the intrinsic function allows SIMD instructions to be manipulated faster, more
 accurately, and more effectively than writing lower-level code.
 We describe the primary AVX-512 intrinsic functions that we are interested in our kernel:
@@ -649,8 +652,8 @@ Intel AVX-512 intrinsic provides arithmetic reduction operation for integer and
 float-pointing, also supports logical reduction operations for an integer type.
 This gives the chance to create AVX-512 intrinsic based reduction support in \mpi which
 will highly increase the performance of \mpi local reduction.
-Additionally, AVX-512 can perform scatter reduction operation with the accomplished
-support of predicate vector register, which behaves in a vectorized manner. This profoundly
+Additionally, AVX-512 can perform scatter reduction operation with the
+support of predivector register, which behaves in a vectorized manner. This profoundly
 expands the limitation of consecutive memory layout for reduction operation to non-contiguous
 data sets at the same time generic and efficient, but such operations
 are not needed for the predefined MPI reduction operations.
@@ -663,6 +666,7 @@ are not needed for the predefined MPI reduction operations.
 \textbf{\textit{count}} \Comment{Total number of elements for reduction operation}\\
 \textbf{\textit{in\_buf}} \Comment{Input buffer for reduction operation}\\
 \textbf{\textit{inout\_buf}} \Comment{Input and output buffer for reduction operation}\\
+\textbf{\textit{sizeof\_type}} \Comment{Number of bytes of the type of the in\_buf / inout\_buf}\\
 
 \begin{algorithmic}[1]
 \Procedure{ReductionOp}{ $in\_buf, inout\_buf, count$ }
@@ -723,7 +727,7 @@ the best assembling techniques of using ZMM registers to load and store.
 After we have the elements loaded in registers, we apply mathematical vector operation
 to perform a reduction on the whole vector.
 %avx2
-We repeat this pattern until the remainders cannot full-fill a 512 bits vector,
+We repeat this pattern until the remainders cannot fulfill a 512 bits vector,
 then we fallback to use YMM registers to process elements that fit in the 256 bits registers.
 And so on, then we execute with 128 bits vectors.
 %Duff
@@ -731,7 +735,7 @@ And so on, then we execute with 128 bits vectors.
 Eventually, we reach the last section of the optimization. We have
 noticed that depending on the number of elements to apply the
 operation on, significant execution time is often spent in the
-prologue, that deals with the remainder, those few elements that cannot full-fill a vector.
+prologue, that deals with the remainder, those few elements that cannot fulfill a vector.
 Intel provides AVX mask intrinsics for mask operations that can vectorize the remainder loop.
 Still, significant overhead is involved in creating and initializing the mask and
 executing a separate and additional code path, which can result in low SIMD efficiency.
@@ -834,9 +838,10 @@ with the application performance.
 % increase the richness of their measurements to provide insights into the
 % increasingly intricate ways in which software and hardware interact.
 PAPI is a portable and efficient API to access hardware performance
-monitoring registers found on most modern microprocessors.
-It is also a standard API for accessing hardware
-performance counters available on most modern microprocessors. These counters exist
+monitoring registers/counters found on most modern microprocessors.
+%It is also a standard API for accessing hardware
+%performance counters available on most modern microprocessors. 
+These counters exist
 as a small set of registers that count "events", which are occurrences of specific signals
 and states related to the processor's function. Monitoring these events facilitates
 correlation between the structure of source or object code and the efficiency of the mapping
@@ -858,22 +863,23 @@ streams of micro-ops in the non-architected code path.
 \begin{figure}[h]
     \centering
     % trim={<left> <lower> <right> <upper>}
-    \includegraphics[width=\linewidth]{papi_ins.pdf}
+    \includegraphics[width=\linewidth]{papi_ins_review.pdf}
     \caption{Comparison between AVX-512 optimized OMPI and default OMPI for MPI\_SUM reduction with PAPI instruction events overview}
-    \label{fig:papi_ins}
+    \label{fig:papi_ins}\vspace{-0.5cm}
 \end{figure}
 
 \begin{figure}[h]
     \centering
     % trim={<left> <lower> <right> <upper>}
-    \includegraphics[width=\linewidth]{papi_br.pdf}
+    \includegraphics[width=\linewidth]{papi_BR_review.pdf}
     \caption{Comparison between AVX-512 optimized OMPI and default OMPI for MPI\_SUM reduction with PAPI branch counters}
-    \label{fig:papi_br}
+    \label{fig:papi_br}\vspace{-0.5cm}
 \end{figure}
 
-
 Figure~\ref{fig:papi_ins} shows the total number of instructions, and memory access instructions of
-load and store, and branch instructions.
+load and store, and branch instructions (due to the
+stability of the results we choose not to clutter the graphs with
+standard deviation).
 We can see that for our optimized reduction operation, the total number of
 instructions is largely reduced. Also, memory access and branch instructions
 have decreased compared to the default implementation in \ompi.
@@ -916,11 +922,13 @@ more benefits compare to others, which shows conditional branch instructions are
 
 \section{Experimental evaluation}\label{sec:experiments}
 We conduct our experiments on a local cluster which is an Intel(R)
-Xeon(R) Gold 6254 based server running at 3.10 GHz. Our work is based
+Xeon(R) Gold 6254 (AVX512F) based server running at 3.10 GHz. Our work is based
 upon \ompi master branch, revision \#75a539. Each experiment is
-repeated 30 times, and we present the average results (due to the
-stability of the results we choose not to clutter the graphs with
-standard deviation). For all tests, we use a single node with one
+repeated 30 times, and we present the average results.
+%(due to the
+%stability of the results we choose not to clutter the graphs with
+%standard deviation). 
+For all tests, we use a single node with one
 process, because our optimization aims to improve the performance of
 the computation part of reduction operation rather than the
 communication.
@@ -929,7 +937,7 @@ This section compares the performance of the reduction operation with two
 implementations.
 For \ompi default reduction operation base module, it
 performs element-wise computation across two input buffers. For each loop iteration,
-it processes two elements. Our new implementation we use AVX-512 vector instruction
+it processes two elements. Our new implementation use AVX-512 vector instruction
 executing reduction operation on the same inputs, but for each iteration, it
 deals with two vectors containing all the elements within the vectors which represent
 a vector-wise operation.
@@ -950,7 +958,7 @@ control of the low-level details at the expense of productivity and
 portability.
 
 Results demonstrate that using AVX-512 enabled operation the
-performance can be improved by a factor of magnitude compared with the
+performance can be improved by an order of magnitude compared with the
 element-wise operation.  To be more specific, when the total size of
 the reduction elements is small, the performance benefit remains low.
 %
@@ -973,16 +981,16 @@ memcpy which indicates we maximize the memory bandwidth.
 \begin{figure}[h]
     \centering
     % trim={<left> <lower> <right> <upper>}
-    \includegraphics[trim={0 0 0 1.5cm},clip, width=\linewidth]{avx_sum.pdf}
-    \caption{Comparison of MPI\_SUM with AVX-512 reduction enable and disable for MPI\_SUM together with memcpy}
+    \includegraphics[trim={0 0 0 1.5cm},clip, width=\linewidth]{avx_sum_review.pdf}
+    \caption{Comparison of MPI\_SUM with AVX-512 reduction enable and disable for MPI\_UINT8\_T together with memcpy}
     \label{fig:avx_sum}
 \end{figure}
 
 \begin{figure}[h]
     \centering
     % trim={<left> <lower> <right> <upper>}
-    \includegraphics[trim={0 0 0 1.5cm},clip,width=\linewidth]{avx_band.pdf}
-    \caption{Comparison of MPI\_BAND with AVX-512 reduction enable and disable for MPI\_SUM together with memcpy}
+    \includegraphics[trim={0 0 0 1.5cm},clip,width=\linewidth]{avx_band_review.pdf}
+    \caption{Comparison of MPI\_BAND with AVX-512 reduction enable and disable for MPI\_UINT8\_T together with memcpy}
     \label{fig:avx_band}
 \end{figure}
 
@@ -1032,15 +1040,12 @@ In the ring-allreduce algorithm, each of N nodes communicates with two of its
 peers $2 * ($N - 1$)$ times. During this communication, a node sends and receives chunks of the data
 buffer. In the first $N - 1$ iterations, received values are added to the values in the node's buffer. In
 the second $N - 1$ iterations, after each process receives the data from the previous process, then it
-applies the reduction and then proceeds to send it again to the next process in the ring.
+applies the reduction and proceeds to send it again to the next process in the ring.
 %
 We can see that during the allreduce processing phase, there are $P * ($N - 1$)$ reduction operations
 occurred with big fusion buffer size, which is very computation intensive.
 Our AVX-512 optimized reduction operations can particularly improve the performance
 of the computation and reduction part of those collective operations.
-
-We conducted our experiments on Stampede2 with Intel Xeon Platinum 8160 ("Skylake") nodes; each node has 48 cores with two sockets. For each node, it has 192GB DDR4 memory. For each core, it has 32KB L1 data cache and 1MB L2. The nodes are connected via Intel Omni-Path network.
-We experimented with TensorFlow CNN benchmarks using Horovod with tensorflow-1.13.1.
 
 \begin{figure}[h]
     \centering
@@ -1051,6 +1056,9 @@ We experimented with TensorFlow CNN benchmarks using Horovod with tensorflow-1.1
     \label{fig:horovod_tacc}
 \end{figure}
 
+We conducted our experiments on Stampede2 with Intel Xeon Platinum 8160 ("Skylake" supports AVX512F) nodes; each node has 48 cores with two sockets. For each node, it has 192GB DDR4 memory. For each core, it has 32KB L1 data cache and 1MB L2. The nodes are connected via Intel Omni-Path network.
+We experimented with TensorFlow CNN benchmarks using Horovod with tensorflow-1.13.1.
+
 Figure~\ref{fig:horovod_tacc} shows the performance comparison of
 our AVX-512 optimized reduction operation and the default reduction operation in \ompi for Horovod (with synthetic datasets and AlexNet model) to train an application called tf\_cnn\_benchmarks~\cite{cnn_Tensorflow}.
 Comparing to default element-wise reduction
@@ -1058,9 +1066,9 @@ implementations, with the increasing number of processes,
 our design shows increasing improvements, which start at 5.45\% and
 eventually rise to 12.38\% faster than default \ompi on 192 processes and 1536 processes respectively.
 We notice that the performance benefit increases with more processes/nodes.
-It is because with more processes, the ratio of time cost by reduction operation increases
-compared to the running time of the entire application.
-We can see that with more nodes, the benefit of our AVX-512 optimized \ompi is more considerable.
+It is because with more MPI processes participated in reduction operation,
+the fact that each one of them is simultaneously using our AVX optimized \ompi
+operations drives up the overall application performance.
 
 %to do check verbs
 \section{Conclusion}\label{sec:conclusion}
@@ -1075,7 +1083,7 @@ We introduced this new reduction operation module in \ompi using AVXs'
 intrinsics supporting different kinds of \mpi reduce operations for
 multiple \mpi types. We demonstrated the efficiency of our vector
 reduction operation using a benchmark calling
-\mpifunc{Local_reduce}. Experiments are conducted on an Intel Xeon
+\mpifunc{Reduce_Local}. Experiments are conducted on an Intel Xeon
 Gold cluster, which shows with AVX-512 enabled reduction operations we
 achieve 10X performance benefits.
 %
