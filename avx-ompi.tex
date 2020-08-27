@@ -189,9 +189,9 @@
 \ccsdesc[300]{Computer systems organization~Heterogeneous (hybrid) systems}
 \ccsdesc[300]{Software and its engineering~Software libraries and repositories}
 
-\keywords{Long vector extension, Long vector operation, Intel AVX2/AVX-512,
+\keywords{Long vector extension, Vector operation, Intel AVX2/AVX-512,
 Instruction level parallelism, Single instruction multiple data,
-OpenMPI, MPI reduction operation}
+MPI reduction operation}
 %
 \maketitle
 
@@ -863,15 +863,15 @@ streams of micro-ops in the non-architected code path.
 \begin{figure}[h]
     \centering
     % trim={<left> <lower> <right> <upper>}
-    \includegraphics[width=\linewidth]{papi_ins_review.pdf}
+    \includegraphics[width=\linewidth]{papi_ins_review.pdf}\vspace{-0.5cm}
     \caption{Comparison between AVX-512 optimized OMPI and default OMPI for MPI\_SUM reduction with PAPI instruction events overview}
-    \label{fig:papi_ins}\vspace{-0.5cm}
+    \label{fig:papi_ins}\vspace{-0.3cm}
 \end{figure}
 
 \begin{figure}[h]
     \centering
     % trim={<left> <lower> <right> <upper>}
-    \includegraphics[width=\linewidth]{papi_BR_review.pdf}
+    \includegraphics[width=\linewidth]{papi_BR_review.pdf}\vspace{-0.5cm}
     \caption{Comparison between AVX-512 optimized OMPI and default OMPI for MPI\_SUM reduction with PAPI branch counters}
     \label{fig:papi_br}\vspace{-0.5cm}
 \end{figure}
@@ -980,17 +980,17 @@ memcpy which indicates we maximize the memory bandwidth.
 \begin{figure}[h]
     \centering
     % trim={<left> <lower> <right> <upper>}
-    \includegraphics[trim={0 0 0 1.5cm},clip, width=\linewidth]{avx_sum_review.pdf}
+    \includegraphics[trim={0 0 0 1.5cm},clip, width=\linewidth]{avx_sum_review.pdf}\vspace{-0.5cm}
     \caption{Comparison of MPI\_SUM with AVX-512 reduction enable and disable for MPI\_UINT8\_T together with memcpy}
-    \label{fig:avx_sum}
+    \label{fig:avx_sum}%\vspace{-0.3cm}
 \end{figure}
 
 \begin{figure}[h]
     \centering
     % trim={<left> <lower> <right> <upper>}
-    \includegraphics[trim={0 0 0 1.5cm},clip,width=\linewidth]{avx_band_review.pdf}
+    \includegraphics[trim={0 0 0 1.5cm},clip,width=\linewidth]{avx_band_review.pdf}\vspace{-0.5cm}
     \caption{Comparison of MPI\_BAND with AVX-512 reduction enable and disable for MPI\_UINT8\_T together with memcpy}
-    \label{fig:avx_band}
+    \label{fig:avx_band}\vspace{-0.5cm}
 \end{figure}
 
 \section{Deep Learning Application Evaluation}\label{sec:application}
