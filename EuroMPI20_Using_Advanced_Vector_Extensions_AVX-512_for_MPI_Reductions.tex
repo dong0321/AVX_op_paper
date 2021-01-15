@@ -355,7 +355,7 @@ efforts have been studied to optimize \mpi reduction operations. Traff
 internal functionality that enabled MPI reduction operations to be performed
 more efficiently with increasing input vectors' sparsity.
 %
-Also~\cite{gpu-reduce} analyzed the limitations of the compute oriented CUDA-Aware
+Also Chu~\cite{gpu-reduce} analyzed the limitations of the compute oriented CUDA-Aware
 collectives and proposed alternative designs and schemes by combining the exploitation GPU's
 compute capability and their fast communication
 path using GPUDirect RDMA feature to alleviate these limitations efficiently.
@@ -386,13 +386,11 @@ communication either by relaxing dependencies or hiding the communication latenc
 And for the minority of those work that endeavors to strengthen the computation part,
 they usually have some requirements or limitations of data
 representation or need extra hardware such as GPUs.
-Our AVX-512 arithmetic reduction
+Our long vector extension arithmetic reduction
 optimizations seek to be more general and use the newly available vector extensions to provide a
-straightforward set of predefined MPI operations, with data representation or operations limitation.
-%and is using CPU resources only
-%without the need of external or extra hardware.
-The implementation supports multiple ISA, covering most Intel processor versions either with legacy SSE and AVX or advanced AVX-512.
-%todo add more why those are different in ompi with avx2
+straightforward set of predefined MPI operations, with no data representation or operations limitation.
+The implementation supports multiple ISA (x86 and AArch64), covering most processor versions from different vendors,
+which support legacy SSE, advanced AVXs, and SVE.
 
 \section{Design and implementation}\label{sec:design}
 \subsection{Intel Advanced Vector Extension}
@@ -470,7 +468,7 @@ We implement our advanced reduction operation with AVX, AVX2, AVX-512
 support in a component in \ompi, based on a Modular Component
 Architecture~\cite{dongprrte} that facilitates extending or
 substituting \ompi core subsystem with new features and innovations.
-We add our AVX-512 optimization in a specialized component that
+We add our long vector reduction optimization in a specialized component that
 implements all predefined MPI reduction operations with vector
 reduction instructions, as in Figure~\ref{fig:avxmca}. From a
 practical standpoint, our module will extract the processor
@@ -896,7 +894,7 @@ the reduction elements is small, the performance benefit remains low.
 %
 However, when the buffer size bigger than 4KB, the performance
 advantage becomes considerable and stable.  We also compare MPI
-operation and memory copy to indicate the peak memory bandwidth
+operation and memory copy, which indicate the peak memory bandwidth
 for a similar operation.  To make a fair comparison, we list the
 complete execution sequence of reduction operation and memory copy
 operation.  We can see that for a \mpi reduction operation, it needs
@@ -912,7 +910,7 @@ memory copy, which indicates we maximize the memory bandwidth.
 
 \section{Experimental evaluation with different platforms}\label{sec:platformsexperiments}
 \subsection{AMD Zen 2 architecture}
-AMD's new Zen architecture supports all the latest x86 instructions such as SSE and AVX1/2.
+AMD's new Zen architecture supports all the latest x86 instructions such as SSE and AVX/2.
 But the data paths are 128 bits wide, the way 256-bit AVX was designed but be carried
 out as two independent 128-bit operations.
 It needs split up 256-bit operations into two 128-bit operations, which means 256-bit operations will
@@ -932,7 +930,7 @@ up to 32 FLOPs/cycle in single precision or up to 16 FLOPs/cycle in double pre
 
 We conducted our benchmark experiments on an EPYC 7302 processor-based cluster,
 which is based on the Zen 2 microarchitecture with a base frequency of 3.0 GHz.
-It supports AVX1 and AVX2 instructions.
+It supports AVX and AVX2 instructions.
 
 Figure~\ref{fig:amdsum} show the result for the
 \mpifunc{SUM} operation on AMD cluster. We conducted reduction experiments from
@@ -1049,7 +1047,7 @@ Figure~\ref{fig:lammpsavx} presents the loop time of LAMMPS chute benchmark runn
 on 24 processes for 100 steps with 259200000 atoms using different AVX capabilities.
 Different collective operations are commonly and frequently used in LAMMPS benchmark (eg. \mpifunc{Allreduce}).
 We can see, without AVX (option "op $\wedge$ AVX") support in reduction operation as shown in red, the latency of the loop is 700.
-With the optimization of using AVX1 and AVX2, we archive 15\% speedup. After introduced AVX512 our performance
+With the optimization of using AVX and AVX2, we archive 15\% speedup. After introduced AVX512 our performance
 benefit reaches 20\% speedup. With the most optimal combination of AVX2 and AVX512,
 we accomplish a speedup of 34\%.
 
