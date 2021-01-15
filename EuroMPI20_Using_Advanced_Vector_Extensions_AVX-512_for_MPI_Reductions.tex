@@ -305,8 +305,8 @@ including bit-level, instruction-level, data-level, and task parallelism, are st
 In this section, we survey related work on techniques taking advantage of
 advanced hardware or architectures, which mainly focuses on data-level parallelization.
 Novel processors and hardware architectures from different vendors, such as Intel and Arm,
-come equipped with long vector extensions, and the usage of those new technologies in high-performance computing has been
-studied by multiple researchers with various programming models and applications.
+come equipped with long vector extensions, and multiple researchers have studied the usage
+of those new technologies in high-performance computing with various programming models and applications.
 %
 \subsection{Long vector extension}
 Lim~\cite{Lim2018} explored matrix-matrix multiplication based on blocked matrix multiplication
@@ -346,36 +346,36 @@ In our work, we study AVX-512 enabled features more comprehensively for
 all supported mathematical reduction functions and also provide
 a detailed analysis of the efficiency achievements of related intrinsics.
 Furthermore, we aim to accommodate the AVX reduction instructions support in MPI to provide
-vectorized computations for applications to use.
+vectorized computations for applications.
 
 \subsection{\mpi reduction operation}
 Additionally, different techniques and
 efforts have been studied to optimize \mpi reduction operations. Traff
 ~\cite{NeutralMPIReduction} proposed a simple implementation of MPI library
 internal functionality that enabled MPI reduction operations to be performed
-more efficiently with increasing sparsity of the input vectors.
+more efficiently with increasing input vectors' sparsity.
 %
 Also~\cite{gpu-reduce} analyzed the limitations of the compute oriented CUDA-Aware
-collectives and proposed alternative designs and schemes by combining the exploitation of the
-compute capability of GPU and their fast communication
+collectives and proposed alternative designs and schemes by combining the exploitation GPU's
+compute capability and their fast communication
 path using GPUDirect RDMA feature to alleviate these limitations efficiently.
 %
 Luo~\cite{Luo-adapt} presented a collective communication framework called ADAPT
 in \ompi based on an event-driven infrastructure. Through events and callbacks,
 ADAPT relaxed synchronization dependencies and maintained the minimal data dependencies.
 This approach provided more tolerance to system noise and also supported fine-grained,
-multi-level topology-aware collective operations which can exploit the
+multi-level topology-aware collective operations, which can exploit the
 parallelism of heterogeneous architectures.
 %
 Hofmann~\cite{sparse-reduction} presented a pipeline algorithm for MPI Reduce
 that used a Run Length Encoding scheme to improve the global reduction of sparse
 floating-point data.
 Patarasuk's work~\cite{allreduce-optimal} investigated implementations of the allreduce operation
-with large data sizes and derived a theoretical lower bound on the communication time of this operation and developed
+with large data sizes and derived a theoretical lower bound on this operation's communication time and developed
 a bandwidth optimal allreduce algorithm on tree topologies.
 %
-Shan~\cite{shan-reduce} proposed to use idle threads on a many-core node in order to accelerate
-the local reduction computations, and also used data compression technique to compress sparse input data for reduction.
+Shan~\cite{shan-reduce} proposed using idle threads on a many-core node to accelerate
+the local reduction computations and utilized the data compression technique to compress sparse input data for reduction.
 Both approaches (threading and exploitation
 of sparsity) helped accelerate MPI reductions on large vectors when
 running on many-core supercomputers.
@@ -387,11 +387,11 @@ And for the minority of those work that endeavors to strengthen the computation 
 they usually have some requirements or limitations of data
 representation or need extra hardware such as GPUs.
 Our AVX-512 arithmetic reduction
-optimizations seek to be more general, and use the newly available vector extensions to provide a
-straightforward set of predefined MPI operations, with no limitation of data representation or operations.
+optimizations seek to be more general and use the newly available vector extensions to provide a
+straightforward set of predefined MPI operations, with data representation or operations limitation.
 %and is using CPU resources only
 %without the need of external or extra hardware.
-The implementation supports multiple ISA, covering most Intel processors versions either with legacy SSE and AVX or advanced AVX-512.
+The implementation supports multiple ISA, covering most Intel processor versions either with legacy SSE and AVX or advanced AVX-512.
 %todo add more why those are different in ompi with avx2
 
 \section{Design and implementation}\label{sec:design}
@@ -401,8 +401,8 @@ It supports the vast majority of previous generations 128-bit SIMD float-point
 and integer instructions to operate on 256-bit YMM registers to support 256-bit operations.
 %
 AVX2 also enhances a vibrant mix of broadcast, permute/variable-shift instructions to accelerate
-numerical computations. The 256-bit AVX2 instructions are supported by the Intel microarchitecture
-Haswell which implements 256-bit data path with low latency and high throughput.
+numerical computations. The Intel microarchitecture Haswell supports the 256-bit AVX2 instructions
+implementing 256-bit data path with low latency and high throughput.
 Besides, AVX2 provides enhanced functionalities for broadcast and permute operations on data elements,
 vector shift instructions with variable-shift count per data element,
 and instructions to fetch non-contiguous data elements from memory.
@@ -412,10 +412,10 @@ enrich significant supports compared to AVX2. It provides more powerful packing
 capabilities with longer vector length, such as encapsulating eight double-precision
 or sixteen single-precision floating-point numbers,
 or eight 64-bit integers, or sixteen 32-bit integers within a vector.
-The longer vector enables processing of twice the number of data elements
-than that Intel AVX/Intel AVX2 can
+The longer vector enables processing twice the number of data elements
+than that of Intel AVX/Intel AVX2 can
 process with a single instruction and four times than that of SSE.
-On the other hand, it contributes to more distinguished performance for the most
+On the other hand, it contributes to more outstanding performance for the most
 demanding computational tasks with more vectors(32 vector registers, each 512 bits wide,
 eight dedicated mask registers), enhanced high-speed math instructions, embedded rounding controls,
 and compact representation of large displacement value.
@@ -480,8 +480,8 @@ or fallback to the default basic module if the processor has no
 support for such extensions, as shown in Figure~\ref{fig:512flow}.
 %
 To be more specific, we explicitly check CPUID -- a processor
-supplementary instruction allowing software to discover details of the
-processor, to determine processor type and whether features such as
+supplementary instruction allowing software to discover the
+processor details, determine processor type, and whether features such as
 SSE/AVXs are implemented and supported.
 
 \begin{figure}[h]
@@ -515,12 +515,12 @@ The first strategy by using auto-vectorization, is portable and
 generation of processors, with the only required step being a
 re-compilation of the code. However, to effectively use automatic
 vectorization, programmers must follow guidelines and restrictions for
-vectorizable code, and provide compile-time options largely dependent
-on the capability and efficiency of a specific compiler.
+vectorizable code and provide compile-time options largely dependent
+on a specific compiler's capability and efficiency.
 %
 And programmers also need to be aware of the specifics of the
 instructions that are supported by a processor.  Additionally,
-compilers have strong limitations in the analysis and code
+compilers have substantial limitations in the analysis and code
 transformations phases that prevent an efficient extraction of SIMD
 parallelism in real applications~\cite{autoEvaluation}.
 %
@@ -589,12 +589,12 @@ phase to maximize performance.
 \end{algorithmic}
 \end{algorithm}
 
-A reduction is a common operation encountered in many scientific applications.
+A reduction is a typical operation encountered in many scientific applications.
 Those applications have large amounts of data-level parallelism and should be able
 to benefit from SIMD support for reduction operation. Especially in deep learning applications,
 it needs to frequently calculate and update the gradients, which is typically very computation extensive.
 Traditional reduction operation performs element by element of the input buffers,
-which executes as a sequential operation or it is possible could be vectorized
+which executes as a sequential operation or possible could be vectorized
 under particular circumstance or with a specific compiler or constraints. Sometimes
 it may suffer from dependencies across multiple loop iterations.
 %
@@ -602,11 +602,11 @@ Figure~\ref{fig:sseavx} illustrates the difference between a scalar operation an
 a vector operation for AVX, AVX2 or AVX-512, respectively.
 %
 It is an example of a vector instruction processing multiple elements together at the same time,
-compared to executing the additions sequentially. Where a scalar processor would have to perform a load, an
-computation and a store instruction for every element, a vector processor perform one load, one computation and
-one store for multiple elements.
+compared to executing the additions sequentially. A scalar processor would have to perform one load,
+one computation, and one store instruction for every element. A vector processor performs one load,
+one computation, and one store for multiple elements.
 An AVX-512 SIMD-vector can process multiple elements at
-the same time. For example, it can store 8 double-precision floating-point numbers or 16 integer values, also allow the computation of those elements by executing a single instruction.
+the same time. For example, it can store eight double-precision floating-point numbers or 16 integer values, also allow the computation of those elements by executing a single instruction.
 AVX-512 reduction instructions perform arithmetic horizontally across active elements of a
 single source vector and deliver a scalar result.
 
@@ -620,10 +620,10 @@ single source vector and deliver a scalar result.
 
 Intel AVX-512 intrinsic provides arithmetic reduction operation for integer and
 float-pointing, also supports logical reduction operations for an integer type.
-This gives the chance to create AVX-512 intrinsic based reduction support in \mpi which
-will highly increase the performance of \mpi local reduction.
+This gives the chance to create AVX-512 intrinsic-based reduction support in \mpi which
+will highly increase \mpi local reduction's performance.
 Additionally, AVX-512 can perform scatter reduction operation with the
-support of predivector register, which behaves in a vectorized manner. This profoundly
+support of predicate register, which behaves in a vectorized manner. This profoundly
 expands the limitation of consecutive memory layout for reduction operation to non-contiguous
 data sets at the same time generic and efficient, but such operations
 are not needed for the predefined MPI reduction operations.
@@ -810,9 +810,9 @@ Our implementation reduced the number of loads and stores instructions
 by a factor of 90X and 60X, respectively.  At the same time, for
 branching instructions, our optimization decreased by 60X.  We also
 investigated the cache misses of L1 and L2 caches. Because we are
-dealing with an extensive contiguous data, which means data access
-patterns are very regular and easy to predict, all predicted accesses
-will be consumed so that the cache misses are not showing significant
+dealing with extensive contiguous data, which means data access
+patterns are very regular and easy to predict. All predicted accesses
+would be consumed so that the cache misses do not show significant
 variation.
 
 Figure~\ref{fig:papibr} illustrates the instruction count details
@@ -820,8 +820,8 @@ of branch instructions of both AVX-512 optimized implementation and the default
 element-wise reduction method. By using long vectors, we largely decreased the "for loop" of the reduction
 operation. Consequently, the AVX-512 code has much less control and branching instructions.
 Which means we have less conditional branch instructions.
-Especially, for conditional branch instructions not taken, we gain
-more benefits compare to others, which shows conditional branch instructions are being correctly predicted.
+For conditional branch instructions not taken, we gain
+more benefits compared to others, which shows conditional branch instructions are being correctly predicted.
 %todo add more with description
 
 %PAPI_BR_UCN  0x8000002a  Yes  Unconditional branch instructions
@@ -844,8 +844,8 @@ repeated 30 times, and we present the average results.
 %(due to the
 %stability of the results we choose not to clutter the graphs with
 %standard deviation).
-For all tests, we use a single node with one
-process, because our optimization aims to improve the performance of
+We use a single node with one
+process for all tests, because our optimization aims to improve the performance of
 the computation part of reduction operation rather than the
 communication.
 
@@ -858,7 +858,7 @@ executing reduction operation on the same inputs, but for each iteration, it
 deals with two vectors containing all the elements within the vectors which represent
 a vector-wise operation.
 For the reduction benchmark, we use the \mpifunc{Reduce_local} function call to
-perform the local reduction for all supported MPI operations using an array of different sizes.
+perform the local reduction for all supported MPI operations utilizing an array of different sizes.
 
 We present to compare arithmetic SUM and logical BAND with reduction data size from 1KB to 128MB.
 For the experiments, we flushed cache to ensure we are not reusing cache for a fair comparison.
@@ -896,7 +896,7 @@ the reduction elements is small, the performance benefit remains low.
 %
 However, when the buffer size bigger than 4KB, the performance
 advantage becomes considerable and stable.  We also compare MPI
-operation together with memcpy, to indicates the peak memory bandwidth
+operation and memory copy to indicate the peak memory bandwidth
 for a similar operation.  To make a fair comparison, we list the
 complete execution sequence of reduction operation and memory copy
 operation.  We can see that for a \mpi reduction operation, it needs
@@ -904,11 +904,11 @@ two loads from both input memory, and then an additional
 computation, eventually followed by one store to save the results into
 memory. For memcpy it only needs one load from source and one store to
 destination.  The result shows that even with an additional
-computation included, and our optimized AVX-512 reduction operation
-achieves a high level of memory bandwidth which is comparable as
-memcpy.  To be remarked, when the reduction buffer size increases,
+computation included, our optimized AVX-512 reduction operation
+achieves a high level of memory bandwidth comparable to
+memory copy.  To be remarked, when the reduction buffer size increases,
 our implementation achieves the same performance as
-memcpy which indicates we maximize the memory bandwidth.
+memory copy, which indicates we maximize the memory bandwidth.
 
 \section{Experimental evaluation with different platforms}\label{sec:platformsexperiments}
 \subsection{AMD Zen 2 architecture}
@@ -918,7 +918,7 @@ out as two independent 128-bit operations.
 It needs split up 256-bit operations into two 128-bit operations, which means 256-bit operations will
 use up twice the resources to complete. Thus, the peak throughput is four SSE/AVX-128 instructions or two AVX-256 instructions per cycle.
 
-On the Zen 2 architecture, it doubles the width of the physical registers, execution units, and data paths to 256 bits.
+The Zen 2 architecture doubles the physical registers' width, execution units, and data paths to 256 bits.
 This improvement doubles the peak throughput of AVX-256 instructions to four per cycle, or in other words,
 up to 32 FLOPs/cycle in single precision or up to 16 FLOPs/cycle in double precision.
 
@@ -930,16 +930,16 @@ up to 32 FLOPs/cycle in single precision or up to 16 FLOPs/cycle in double pre
     \label{fig:amdsum}
 \end{figure}
 
-We conducted our benchmark experiments on a EPYC 7302 processor based cluster,
+We conducted our benchmark experiments on an EPYC 7302 processor-based cluster,
 which is based on the Zen 2 microarchitecture with a base frequency of 3.0 GHz.
 It supports AVX1 and AVX2 instructions.
 
 Figure~\ref{fig:amdsum} show the result for the
 \mpifunc{SUM} operation on AMD cluster. We conducted reduction experiments from
-different buffer size starts from 1KB to 128MB. We can see that for all sizes
+different buffer size starts from 1KB to 128MB. We can see that
 our AVX2 reduction operations perform five times faster than the default operations
-in \ompi. When compare with memory copy operations, our optimized operations achieve
-almost the same memory bandwidth, which implies we can hid the computation behind memory
+in \ompi for all sizes. When compare with memory copy operations, our optimized operations achieve
+almost the same memory bandwidth, which implies we can hide the computation behind memory
 operation.
 
 \subsection{Arm-v8 architecture}
@@ -955,7 +955,7 @@ As show in figure~\ref{fig:armsvereg}, SVE introduced 16 predicate (P) registers
 with the long vector extension, the new architecture
 supports vector length starts
 from 128 bits up to 2048 bits. It provides a range of different
-values which permit vector code to adapt automatically to the
+values that permit vector code to adapt automatically to the
 current vector length at runtime with the feature of Vector
 Length Agnostic (VLA) programming. Similar to AVX, SVE also has a family of
 horizontal reduction instructions
@@ -966,8 +966,8 @@ C language extension (ACLE) using intrinsic. As shown in algorithm\ref{fig:svere
 to be noted, ACLE uses agnostic vector length which can be accessed at runtime by
 function call of \emph{\textbf{\textit{svcntb() $\mid$ svcnth() $\mid$ svcntw() $\mid$ svcntd()}}}
 determines the count the number of 8, 16, 32, 64-bit elements in a vector.
-As we mentioned in this paper, \ompi is using modular architecture,
-we added another SVE reduction module in the operation component. We compile
+As we mentioned in this paper, \ompi uses a modular architecture,
+and we added another SVE reduction module in the operation component. We compile
 and install \ompi using Arm HPC compile 20.0 with
 flag \emph{\textbf{\textit{-march=armv8-a+sve}}}.
 
@@ -1024,18 +1024,18 @@ buffer size, our SVE optimized operation five times faster than element-wise ope
 \section{LAMMPS Application Evaluation}\label{sec:hpcapplication}
 Large-scale Atomic/Molecular Massively Parallel Simulator (LAMMPS)~\cite{PLIMPTON19951} is a
 molecular dynamics simulation tool from Sandia National Laboratories.
-It provides different benchmark datasets to represent a range of simulation styles
+It provides different benchmark datasets representing a range of simulation styles
 and computational expense for molecular-level interaction forces.
 In our experimental analysis, we evaluate the performance of our reduction
 operation with LAMMPS granular flow benchmark
-using dataset from chute flow (in.chute.scaled).
+using the dataset from chute flow (in.chute.scaled).
 The benchmark reports the “Loop Time” as a measure of
 time required to simulate a set of interactions.
 We run the benchmark with 24 processes (process
 grid: 4x2x3) on Intel(R) Xeon(R) Gold 6254 CPU with different
 capabilities of AVX support, including single AVX, AVX2 and VX512
-and different combination. Different AVXs support combination can be set by using
-modular parameter of \emph{\textbf{\textit{--mca op_avx_support value}}}.
+and different combination. Different AVXs support combinations can be set using
+the modular parameter of \emph{\textbf{\textit{--mca op_avx_support value}}}.
 
 \begin{figure}[h]
     \centering
@@ -1048,7 +1048,7 @@ modular parameter of \emph{\textbf{\textit{--mca op_avx_support value}}}.
 Figure~\ref{fig:lammpsavx} presents the loop time of LAMMPS chute benchmark running
 on 24 processes for 100 steps with 259200000 atoms using different AVX capabilities.
 Different collective operations are commonly and frequently used in LAMMPS benchmark (eg. \mpifunc{Allreduce}).
-We can see, without AVX (option "op $\wedge$ AVX") support in reduction operation as show in red, the latency of loop is 700.
+We can see, without AVX (option "op $\wedge$ AVX") support in reduction operation as shown in red, the latency of the loop is 700.
 With the optimization of using AVX1 and AVX2, we archive 15\% speedup. After introduced AVX512 our performance
 benefit reaches 20\% speedup. With the most optimal combination of AVX2 and AVX512,
 we accomplish a speedup of 34\%.
