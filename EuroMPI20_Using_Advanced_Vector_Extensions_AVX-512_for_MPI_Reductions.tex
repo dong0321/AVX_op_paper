@@ -65,8 +65,8 @@
   The modern CPU's design, including its features of hierarchical
   memory and SIMD/vectorization capability, governs algorithms'
   efficiency. The recent introduction of wide vector instruction
-  set extensions (AVX and SVE) motivated vectorization to become of
-  critical importance to increase efficiency and close the gap to peak
+  set extensions (AVX and SVE) motivated vectorization to become
+  critical to increase efficiency and close the gap to peak
   performance.
   %
   % Intel released processor architectures AVX-512 introduced 512-bit extensions to the 256-bit Advanced Vector Extensions instructions for x86 Instruction Set Architecture (ISA). It embraced new capabilities such as flexible memory access, vector mathematical functions, as well as a small set of further instructions for mathematical library support. These new features allow for better compliance with long vector load/store and reduction operations.
@@ -75,8 +75,8 @@
   %
 
   In this paper, we propose an implementation of predefined MPI
-  reduction operations utilizing AVX, AVX2 and AVX-512 intrinsics to
-  provide vector-based reduction operation and to improve the
+  reduction operations utilizing AVX, AVX2, and AVX-512 intrinsics to
+  provide vector-based reduction operations and improve the
   time-to-solution of these predefined MPI reduction operations.  With
   these optimizations, we achieve higher efficiency for local
   computations, which directly benefit the overall cost of collective
@@ -84,7 +84,7 @@
   %
   The evaluation of the resulting software stack under different
   scenarios demonstrates that the solution is at the same time generic
-  and efficient.  Experiments are conducted on an Intel Xeon Gold, AMD Zen 2 and Arm A64FX clusters,
+  and efficient.  Experiments are conducted on Intel Xeon Gold, AMD Zen 2, and Arm A64FX clusters,
   which show our long vector extension optimized reduction operations
   achieve significant performance benefits than \ompi default for MPI
   reduction operations.
@@ -104,8 +104,8 @@ MPI reduction operation \sep Scalable Vector Extension (SVE)
 
 \section{Introduction}\label{sec:intro}
 The need to satisfy the scientific computing community's increasing
-computational demands drives to larger HPC systems with more complex architectures,
-which provides more opportunities to enhance various levels of parallelism.
+computational demands drives larger HPC systems with more complex architectures,
+which provides more opportunities to enhance various parallelism levels.
 %
 Instruction-level (ILP) and thread-level parallelism (TLP) has been extensively
 studied, but data-level parallelism (DLP) is usually underutilized in CPUs, despite its vast potential.
@@ -116,32 +116,32 @@ The most widespread vector implementation is based on single-instruction multipl
 Vector architectures are designed to improve DLP by processing multiple input data simultaneously with a single instruction, usually applied to vector registers.
 %or to extract DLP by operating over several input elements with a single instruction.
 SIMD instructions have been gradually included in
-microprocessors, with each new generation providing more sophisticated, powerful and flexible
-instructions. The higher investment in SIMD resources per core makes extracting the
-full computational power of these vector units more significant than ever.
+microprocessors, with each new generation providing more sophisticated, powerful, and flexible
+instructions. The higher investment in SIMD resources per core makes extracting
+these vector units' full computational power more significant than ever.
 
 A large body of literature has been focusing on employing DLP via vector
 execution and code vectorization~\cite{VectorizingCompilers1,vectorizingcompilers,SIMDVectorOperations}, and HPC, with its ever-growing demand for computing capabilities, has been quick to embrace vector processors and harness this additional compute power.
-Vectorization as an essential factor of processors' capability to apply
-a single instruction on multiple data, continuously improves
-from one CPU generation to the next, by using larger vector registers, gather/scatter capabilities and much more.
+As an essential factor of processors' capability to apply
+a single instruction on multiple data, vectorization continuously improves
+from one CPU generation to the next by using larger vector registers, gather/scatter capabilities, and much more.
 Compared to traditional scalar processors, extension vector processors support
 SIMD and more powerful instructions operating
-on vectors with multiples elements and can generate orders of magnitude faster memory accesses and data computations.
+on vectors with multiples elements. They can generate orders of magnitude faster memory accesses and data computations.
 %involved rather than a single element, which
 %could achieve maximum computational power.
 Over the last decade, the difference between a scalar code and its vectorized equivalent
 increased from a factor of 4 with SSE, up to a factor of 16 with AVX-512~\cite{PentiumIII,Haswelldetail,avx-info}, highlighting the importance of employing vectorized code whenever possible.
 %Therefore, it is essential to vectorize code to achieve high performance on modern CPUs by using dedicated instructions and registers.
 The conversion of a scalar code into a vectorized
-equivalent can be rather straightforward for many classes of algorithms
+equivalent can be relatively straightforward for many classes of algorithms
 and computational kernels, as it can be done transparently by a compiler
-with auto-vectorization. For more complex codes, the compiler can or might
-provide a baseline but developers are also encouraged to provide optimized
-versions using widely available compilers intrinsics.
+with auto-vectorization. The compiler can provide a baseline for more complex codes,
+but developers are also encouraged to offer optimized versions using
+widely available compilers intrinsics.
 %
 
-There are efforts to keep improving the vector processors by increasing the vector
+There are efforts to improve the vector processors by increasing the vector
 length and adding new vector instructions.
 As an example, Intel's first version of vectorized instruction set, MMX was quickly superseded by more advanced vector integer SSE and AVX instructions~\cite{intelsse, intelavx, avxsets},
 then expanded to Haswell instructions as 256 bits (AVX2),
@@ -176,7 +176,7 @@ optional capabilities beyond the basic instruction set.
     \label{fig:avxmms}
 \end{figure}
 
-AVX-512 not only takes advantage of using long vectors but also enables powerful high
+AVX-512 takes advantage of using long vectors and enables powerful high
 vectorization features that can achieve significant speedup. Those features
 include but not limited to:
 \begin{enumerate}
@@ -201,38 +201,43 @@ a maximum of 2048 bits in increments of 128 bits.
 At the other end of the programming spectrum, Message Passing Interface
 (\mpi)~\cite{mpi-forum} is a popular, efficient and portable parallel programming
 paradigm for distributed memory systems widely used in scientific applications.
-The MPI standard provides an entire set of communication primitives, between pairs of processes or between entire groups of processes, allowing applications to completely tailor its' use to their needs.
+The MPI standard provides an entire set of communication primitives, between pairs
+of processes or between whole groups of processes,
+allowing applications to tailor their use to their needs completely.
 %As many scientific applications operate on a large amount of data, manipulating and operating these data become complicated.
 %
-Therefore, there is no critical subset of MPI capability in particular, all MPI aspects are critical to some computation domains.
-However, there is evidence that optimized support for two-sided communications and collective communications, will benefit a large number of parallel applications. As an example, machine learning applications running on distributed systems,
+Therefore, there is no critical subset of MPI capability. In particular, all MPI aspects are
+essential to some computation domains.
+However, there is evidence that optimized support for two-sided communications and
+collective communications will benefit a large number of parallel applications. As an example,
+machine learning applications running on distributed systems,
 critically depend on the performance of an MPI\_Allreduce, a reduction operation,
 for extensive data sets to synchronize updating the weights matrix.
 
 Computation-oriented collective operations such as MPI\_Allreduce and MPI\_Reduce perform reductions on
 data along with the communications performed by collectives.
 These collectives typically encompass a memory-bound operation, which forces
-the computation to become the main bottleneck and limit the overall performance of the collective implementation.
+the computation to become the main bottleneck and limit collective implementation's overall performance.
 However, the existence of advanced architecture technologies introduced
 with wide vector extension and specialized arithmetic operations, calls for
 MPI libraries to provide support for such extensions, providing specialized functions
-capable to extract most of the computational power of the processor and unconditionally deliver it to the application.
+capable to extracting most of the processor's computational power to deliver it to the application.
 
 %take advantage of advanced vector
 %extension (\sve and AVX-512~\cite{avx-info, AVXextensions}).
 
 Unlike more traditional HPC applications that embraced MPI long ago,
-machine learning and data science in general, were more reticent. However,
-a new trend has arisen lately, certainly in relation to the growth
-of the size of the problems, toward a wider use of \mpi for the distributed training.
+machine learning and data science, in general, were more reticent. However,
+a new trend has arisen lately, certainly concerning the growth
+of the problems' size, toward more extensive use of \mpi for the distributed training.
 
 As mentioned before, the most expensive step in the learning process, the reduction of the gradients, is entirely dependent on the performance of MPI\_Allreduce with a large amount of data (basically all the weights on the layer).
 Such reduction operations in machine learning applications
 are commonly seen in synchronous parameter updates of the distributed Stochastic
 Gradient Descent (SGD) optimization~\cite{sgd10}, which is used extensively
-in, for example, neural networks, linear regressions and logistic
+in, for example, neural networks, linear regressions, and logistic
 regressions. Usually, this kind of reduction has two aspects: 1) the number of reduction
-operations is significant. 2) the data size used by each reduction operation is extremely large (with an extensive training model, the data could be in the hundreds of megabytes).
+operations is significant. 2) the data size used by each reduction operation is considerable (with an extensive training model, the data could be in the hundreds of megabytes).
 %
 Li's~\cite{inproceedings} work explores the performance of allreduce algorithms
 and uses task-based frameworks to improve their performance. Specifically talking about AlexNet on ImageNet~\cite{NIPS20124824}, it points out that
@@ -242,7 +247,7 @@ of 200MB for extensive model training.
 Similarly, \cite{moritz2015sparknet}
 illustrates that with SparkNet, updating the weights of AlexNet, a single reduce
 operation takes almost 20 seconds, even on five nodes. While it's relatively simple to scale
-the number of execution nodes to the thousands, the biggest bottleneck remains the allreduce of
+the number of execution nodes to the thousands, the biggest bottleneck remains the all reduce of
 the gradient values at each step. The size of this reduction is equivalent
 to the model size itself, and it is not reduced when more
 nodes are used. When scaling to large numbers of nodes, the full parameter set, commonly hundreds of
@@ -250,8 +255,8 @@ megabytes, must be summed globally every few microseconds. We can see that, in s
 reduction operation dominates the overall time-to-solution in distributed neural network
 training, highlighting the need for a more efficient reduction implementation.
 
-Thus, for many applications it will be crucial to provide a highly optimized
-version of MPI\_Allreduce, and this requires to address the challenge of improving the performance of the predefined MPI operations. We tackle the above challenges and provide designs and implementations
+Thus, it will be crucial for many applications to provide a highly optimized
+version of MPI\_Allreduce, and this requires addressing the challenge of improving the performance of the predefined MPI operations. We tackle the above challenges and provide designs and implementations
 for reduction operations, which are most commonly used by the computation
 collectives - MPI\_Reduce, MPI\_Allreduce and MPI\_Reduce\_Local.
 We propose extensions to multiple \mpi reduction methods to fully take
@@ -263,11 +268,11 @@ This paper makes the following contributions:
 %to do add ML experiments
 \begin{enumerate}
   \item We investigate and utilize AVX-512 arithmetic instructions/intrinsics to optimize and
-  speed up a variety type \mpi reduction operations.
+  speed up various \mpi reduction operations.
 %
   \item perform experiments using the new reduction operations in the scope
   of \ompi on a cluster supporting the Intel AVX-512 extensions. Different types of
-  experiments are conducted with \mpi application, performance evaluation tool and
+  experiments are conducted with \mpi application, performance evaluation tool, and
   deep learning benchmark.
   %Experiment results demonstrate the efficiency of our AVX-512 optimized reduction
   %operations in \ompi implementation.
@@ -283,13 +288,13 @@ The rest of this paper is organized as follows.
 Section~\ref{sec:related} presents related studies on taking advantage of AVX-512 and \sve for specific mathematics applications, together with a survey about optimizations of \mpi to take advantage of novel hardware.
 Section~\ref{sec:design} describes the implementation details of our optimized reduction methods in the scope of \ompi using AVX-512 intrinsics and instructions.
 Section~\ref{sec:perf} uses a performance too to evaluate performance by different kinds of instruction counts.
-Section~\ref{sec:platformsexperiments} displys the extension of reduction work on AMD and Arm platforms.
+Section~\ref{sec:platformsexperiments} displays the extension of reduction work on AMD and Arm platforms.
 Section~\ref{sec:hpcapplication} illustrates the performance benefits we achieve by running tests using LAMMPS benchmark.
 Section~\ref{sec:experiments} describes the performance difference between
 \ompi and AVX-512 optimized \ompi and provides a distinct insight on how the
 new vector instructions can benefit \mpi.
-Section~\ref{sec:application} illustrates the performance benefits of our
-optimized reduction operation in \ompi using a deep learning application.
+Section~\ref{sec:application} illustrates our optimized reduction operation's performance
+benefits in \ompi using a deep learning application.
 
 \section{Related Work}\label{sec:related}
 Different techniques can be roughly classified according to the level at which
