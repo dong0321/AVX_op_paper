@@ -60,34 +60,36 @@
 \address[First]{The University of Tennessee, 1122 Volunteer Blvd, knoxville, TN 37996}
 
 \begin{abstract}
-  As the scale of high-performance computing (HPC) systems continues to grow, researchers are devoted themselves to explore increasing levels of parallelism to achieve optimal performance.
+  %GB: As the scale of high-performance computing (HPC) systems continues to grow, researchers are devoted themselves to explore increasing levels of parallelism to achieve optimal performance.
+  % At the ongoing hardware development trend, exploiting all available parallelism on
+  % High-Performance Computing (HPC) systems is the only way optimal performance.
   %
-  The modern CPU's design, including its features of hierarchical
-  memory and SIMD/vectorization capability, governs algorithms'
-  efficiency. The recent introduction of wide vector instruction
-  set extensions (AVX and SVE) motivated vectorization to become
-  critical to increase efficiency and close the gap to peak
-  performance.
+  The modern CPU's design, including its features of hierarchical memory and
+  SIMD/vectorization capability, governs algorithms' efficiency much more than
+  the modest frequency increase we have lately witnessed. The recent
+  introduction of wide vector instruction set extensions (AVX and SVE) motivated
+  vectorization to become critical software component to increase efficiency and
+  close the gap to peak performance.
   %
   % Intel released processor architectures AVX-512 introduced 512-bit extensions to the 256-bit Advanced Vector Extensions instructions for x86 Instruction Set Architecture (ISA). It embraced new capabilities such as flexible memory access, vector mathematical functions, as well as a small set of further instructions for mathematical library support. These new features allow for better compliance with long vector load/store and reduction operations.
   % %
   % ARM's modern Armv8-A architecture also introduced Scalable Vector Extension (SVE) - an optional separate architectural extension with a new set of A64 instruction encodings, which enables even more significant parallelisms.
   %
 
-  In this paper, we propose an implementation of predefined MPI
-  reduction operations utilizing AVX, AVX2, and AVX-512 intrinsics to
-  provide vector-based reduction operations and improve the
-  time-to-solution of these predefined MPI reduction operations.  With
-  these optimizations, we achieve higher efficiency for local
-  computations, which directly benefit the overall cost of collective
-  reductions.
+  In this paper, we investigate the impact of the vectorization of MPI reduction
+  operations, and propose an implementation of predefined MPI reduction
+  operations using vector intrinsics (AVX and SVE) to improve the
+  time-to-solution of the predefined MPI reduction operations.
   %
-  The evaluation of the resulting software stack under different
-  scenarios demonstrates that the solution is at the same time generic
-  and efficient.  Experiments are conducted on Intel Xeon Gold, AMD Zen 2, and Arm A64FX clusters,
-  which show our long vector extension optimized reduction operations
-  achieve significant performance benefits than \ompi default for MPI
-  reduction operations.
+  The evaluation of the resulting software stack under different scenarios
+  demonstrates that the approach is generic and efficient.  Experiments
+  conducted on different architectures (Intel Xeon Gold, AMD Zen 2, and Arm
+  A64FX), show that the proposed vector extension optimized reduction operations
+  significantly reduce completion time for collective communication reductions.
+  With these optimizations, we achieve higher memory bandwidth and an increased
+  efficiency for local computations, which directly benefit the overall cost of
+  collective reductions and applications based on them.
+  % than \ompi default for MPI reductions operations.
 %
   % Furthermore, we demonstrate the efficiency of our AVX512-enabled approach by
   % a distributed deep learning application Horovod showing 12\% speedup with 1536 processes.

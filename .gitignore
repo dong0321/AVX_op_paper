@@ -1,0 +1,9 @@
+auto/
+*.aux
+*.bbl
+*.blg
+*.log
+*.out
+*.spl
+elsarticle-num.bst
+elsarticle.cls
