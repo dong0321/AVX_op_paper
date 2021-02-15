@@ -1,6 +1,6 @@
 PDFLATEX=lualatex
 
-MAIN_TEX= EuroMPI20_Using_Advanced_Vector_Extensions_AVX-512_for_MPI_Reductions.tex
+MAIN_TEX= EuroMPI20_Using_Advanced_Vector_Extensions_AVX-512_for_MPI_Reductions.tex cover_letter.tex
 
 all: pdf-pdftex
 
